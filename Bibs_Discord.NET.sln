@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29306.81
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bibs_Discord_dotNET", "Bibs_Discord.NET\Bibs_Discord_dotNET.csproj", "{12526492-AC28-452F-8E22-6DD4CF5ADDA6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bibs_Infrastructure", "Bibs_Infrastructure\Bibs_Infrastructure.csproj", "{1B936E1B-1B82-48ED-BDB9-DD3B9EFA6B94}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{12526492-AC28-452F-8E22-6DD4CF5ADDA6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12526492-AC28-452F-8E22-6DD4CF5ADDA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{12526492-AC28-452F-8E22-6DD4CF5ADDA6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12526492-AC28-452F-8E22-6DD4CF5ADDA6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1B936E1B-1B82-48ED-BDB9-DD3B9EFA6B94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B936E1B-1B82-48ED-BDB9-DD3B9EFA6B94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B936E1B-1B82-48ED-BDB9-DD3B9EFA6B94}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B936E1B-1B82-48ED-BDB9-DD3B9EFA6B94}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DB151981-B0A0-4178-A1E6-997E5EC3089C}
+	EndGlobalSection
+EndGlobal

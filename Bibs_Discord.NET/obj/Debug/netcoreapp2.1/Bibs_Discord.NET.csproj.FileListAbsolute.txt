@@ -1,0 +1,15 @@
+C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\bin\Debug\netcoreapp2.1\Bibs_Discord.NET.deps.json
+C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\bin\Debug\netcoreapp2.1\Bibs_Discord.NET.runtimeconfig.json
+C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\bin\Debug\netcoreapp2.1\Bibs_Discord.NET.runtimeconfig.dev.json
+C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\bin\Debug\netcoreapp2.1\Bibs_Discord.NET.dll
+C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\obj\Debug\netcoreapp2.1\Bibs_Discord.NET.csprojAssemblyReference.cache
+C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\obj\Debug\netcoreapp2.1\Bibs_Discord.NET.AssemblyInfoInputs.cache
+C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\obj\Debug\netcoreapp2.1\Bibs_Discord.NET.AssemblyInfo.cs
+C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\bin\Debug\netcoreapp2.1\Bibs_Discord.NET.pdb
+C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\obj\Debug\netcoreapp2.1\Bibs_Discord.NET.dll
+C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\obj\Debug\netcoreapp2.1\Bibs_Discord.NET.pdb
+C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\obj\Debug\netcoreapp2.1\Bibs_Discord.NET.genruntimeconfig.cache
+C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\bin\Debug\netcoreapp2.1\Bibs_Infrastructure.dll
+C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\bin\Debug\netcoreapp2.1\Bibs_Infrastructure.pdb
+C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\obj\Debug\netcoreapp2.1\Bibs_Discord.NET.csproj.CopyComplete
+C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\obj\Debug\netcoreapp2.1\Bibs_Discord.NET.csproj.CoreCompileInputs.cache
