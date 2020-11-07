@@ -3,6 +3,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -54,6 +55,21 @@ namespace Bibs_Discord.NET.Modules
                 await Context.Channel.TriggerTypingAsync();
                 await Context.Channel.SendMessageAsync(null, false, embed);
             }
+        }
+        [Command("joke", RunMode = RunMode.Async)]
+        [Summary("Get a random dad joke")]
+        public async Task Joke()
+        {
+            var client = new HttpClient();
+            var result = await client.GetStringAsync("https://us-central1-dadsofunny.cloudfunctions.net/DadJokes/random/jokes");
+            var joke = JsonConvert.DeserializeObject<dynamic>(result);
+
+            var builder = new EmbedBuilder()
+               .WithColor(new Color(33, 176, 252))
+               .WithTitle(joke.setup.ToString())
+               .WithDescription(joke.punchline.ToString());
+            await Context.Channel.TriggerTypingAsync();
+            await ReplyAsync(embed: builder.Build());
         }
 
         [Command("meme", RunMode = RunMode.Async)]

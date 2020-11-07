@@ -1,4 +1,5 @@
-﻿using Bibs_Discord_dotNET.Ultilities;
+﻿using Bibs_Discord_dotNET.Commons;
+using Bibs_Discord_dotNET.Ultilities;
 using Bibs_Infrastructure;
 using Discord;
 using Discord.Commands;
@@ -36,7 +37,22 @@ namespace Bibs_Discord.NET.Modules
         public async Task Answer([Remainder]string question)
         {
             Random random = new Random();
-            string[] answers = { "Yes", "No", "Maybe", "dunno", "Yesn't", "Perhaps", "Possibly", "Positively","Conceivably", "I don't feel like answering right now, try again later", "In your dreams", "You sure you want to know the answer to that?", "*cricket noises*", "W-w-why would you ask that?" };
+            string[] answers = { 
+                "Yes", 
+                "No",
+                "Maybe",
+                "dunno",
+                "Yesn't",
+                "Perhaps",
+                "Possibly", 
+                "Positively",
+                "Conceivably", 
+                "I don't feel like answering right now, try again later", 
+                "In your dreams", 
+                "You sure you want to know the answer to that?", 
+                "*cricket noises*", 
+                "W-w-why would you ask that?" 
+            };
             if ((question.IndexOf("?", StringComparison.CurrentCultureIgnoreCase) >= 0) == false)
             {
                 await Context.Channel.TriggerTypingAsync();
@@ -143,9 +159,9 @@ namespace Bibs_Discord.NET.Modules
                .WithTitle($"{user}'s Files")
                .WithDescription($"{user.Username}'s infomation is as follows: ")
                .WithColor(new Color(33, 176, 252))
-               .AddField("User ID", user.Id)
-               .AddField("Created at", user.CreatedAt.ToString("dd/MM/yyyy"))
-               .AddField("Join date", user.JoinedAt.Value.ToString("dd/MM/yyyy"))
+               .AddField("User ID", user.Id, true)
+               .AddField("Created at", user.CreatedAt.ToString("dd/MM/yyyy"), true)
+               .AddField("Join date", user.JoinedAt.Value.ToString("dd/MM/yyyy"), true)
                .AddField("Roles", string.Join(" ", user.Roles.Select(x => x.Mention)))
                .WithCurrentTimestamp();
                 var embed = builder.Build();
@@ -187,15 +203,8 @@ namespace Bibs_Discord.NET.Modules
                 var roleById = Context.Guild.Roles.FirstOrDefault(x => x.Id == roleId);
                 if (roleById == null)
                 {
-                    EmbedBuilder embedBuilder = new EmbedBuilder()
-                         .WithThumbnailUrl(Context.Guild.IconUrl)
-                         .WithTitle("Ranks")
-                         .WithColor(new Color(33, 176, 252))
-                         .WithDescription("That role does not exist!");
-
-                    Embed embed1 = embedBuilder.Build();
                     await Context.Channel.TriggerTypingAsync();
-                    await Context.Channel.SendMessageAsync(null, false, embed1);
+                    await Context.Channel.SendSuccessAsync("Ranks", "That role doesn't exist!");
                     return;
                 }
 
@@ -206,15 +215,8 @@ namespace Bibs_Discord.NET.Modules
                 var roleByName = Context.Guild.Roles.FirstOrDefault(x => string.Equals(x.Name, identifier, StringComparison.CurrentCultureIgnoreCase));
                 if (roleByName == null)
                 {
-                    EmbedBuilder embedBuilder = new EmbedBuilder()
-                        .WithThumbnailUrl(Context.Guild.IconUrl)
-                        .WithTitle("Ranks")
-                        .WithColor(new Color(33, 176, 252))
-                        .WithDescription("That role does not exist!");
-
-                    Embed embed2 = embedBuilder.Build();
                     await Context.Channel.TriggerTypingAsync();
-                    await Context.Channel.SendMessageAsync(null, false, embed2);
+                    await Context.Channel.SendSuccessAsync("Ranks", "That role doesn't exist!");
                     return;
                 }
 
@@ -223,44 +225,23 @@ namespace Bibs_Discord.NET.Modules
 
             if (ranks.Any(x => x.Id != role.Id))
             {
-                EmbedBuilder embedBuilder = new EmbedBuilder()
-                    .WithThumbnailUrl(Context.Guild.IconUrl)
-                    .WithTitle("Ranks")
-                    .WithColor(new Color(33, 176, 252))
-                    .WithDescription("That rank does not exist!");
-
-                Embed embed3 = embedBuilder.Build();
                 await Context.Channel.TriggerTypingAsync();
-                await Context.Channel.SendMessageAsync(null, false, embed3);
+                await Context.Channel.SendSuccessAsync("Ranks", "That rank doesn't exist!");
                 return;
             }
 
             if ((Context.User as SocketGuildUser).Roles.Any(x => x.Id == role.Id))
             {
                 await (Context.User as SocketGuildUser).RemoveRoleAsync(role);
-                EmbedBuilder embedBuilder = new EmbedBuilder()
-                    .WithThumbnailUrl(Context.Guild.IconUrl)
-                    .WithTitle("Ranks")
-                    .WithColor(new Color(33, 176, 252))
-                    .WithDescription($"Succesfully removed the rank {role.Mention} from you.");
-
-                Embed embed4 = embedBuilder.Build();
                 await Context.Channel.TriggerTypingAsync();
-                await Context.Channel.SendMessageAsync(null, false, embed4);
+                await Context.Channel.SendSuccessAsync("Ranks", $"Succesfully removed the rank {role.Mention} from you.");
                 return;
             }
 
             await (Context.User as SocketGuildUser).AddRoleAsync(role);
-            var builder = new EmbedBuilder()
-                   .WithThumbnailUrl(Context.Guild.IconUrl)
-                   .WithTitle("Ranks")
-                   .WithColor(new Color(33, 176, 252))
-                   .WithDescription($"Succesfully added the rank {role.Mention} from you.");
-
-            var embed = builder.Build();
             await Context.Channel.TriggerTypingAsync();
-            await Context.Channel.SendMessageAsync(null, false, embed);
-           
+            await Context.Channel.SendSuccessAsync("Ranks", $"Succesfully added the rank {role.Mention} to you.");
+
         }
     }
 }

@@ -11,6 +11,7 @@ using Bibs_Infrastructure;
 using Bibs_Discord_dotNET.Ultilities;
 using Microsoft.EntityFrameworkCore.Internal;
 using Discord.Rest;
+using Bibs_Discord_dotNET.Commons;
 
 namespace Bibs_Discord.NET.Modules
 {
@@ -44,7 +45,7 @@ namespace Bibs_Discord.NET.Modules
             await ReplyAsync(text);
         }
         [Command("mute", RunMode = RunMode.Async)]
-        [RequireUserPermission(GuildPermission.ManageMessages)]
+        [RequireUserPermission(GuildPermission.ManageMessages, ErrorMessage = "You don't have permission to do that!")]
         [RequireBotPermission(GuildPermission.ManageRoles)]
         [Summary("Toggle mute a user")]
         public async Task Mute([Remainder] SocketGuildUser user)
@@ -131,7 +132,7 @@ namespace Bibs_Discord.NET.Modules
 
         [Command("nick")]
         [Summary("Change a user's nickname")]
-        [RequireUserPermission(GuildPermission.ManageNicknames)]
+        [RequireUserPermission(GuildPermission.ManageNicknames, ErrorMessage = "You don't have permission to do that!")]
         [RequireBotPermission(GuildPermission.ManageNicknames)]
         public async Task Nick(SocketGuildUser user, [Remainder] string name)
         {
@@ -151,7 +152,7 @@ namespace Bibs_Discord.NET.Modules
         [Command("prune")]
         [Alias("purge", "delet", "kill")]
         [Summary("Bulk delete messages")]
-        [RequireUserPermission(GuildPermission.ManageMessages)]
+        [RequireUserPermission(GuildPermission.ManageMessages, ErrorMessage = "You don't have permission to do that!")]
         [RequireBotPermission(GuildPermission.ManageMessages)]
         public async Task Prune(int amount)
         {
@@ -174,45 +175,28 @@ namespace Bibs_Discord.NET.Modules
         }
         [Command("kick")]
         [Summary("Kick a user")]
-        [RequireUserPermission(GuildPermission.KickMembers)]
+        [RequireUserPermission(GuildPermission.KickMembers, ErrorMessage = "You don't have permission to do that!")]
         [RequireBotPermission(GuildPermission.KickMembers)]
         public async Task Kick([Remainder] SocketGuildUser user)
         {
-            var builder = new EmbedBuilder()
-                 .WithThumbnailUrl(Context.Guild.IconUrl)
-                 .WithTitle("Kick")
-                 .WithColor(new Color(33, 176, 252))
-                 .WithDescription($"cya {user.Mention} :wave:")
-                 .AddField("Reason:", $"{Context.User.Mention} invoked the command")
-                 .WithCurrentTimestamp(); 
-
-            var embed = builder.Build();
             await Context.Channel.TriggerTypingAsync();
-            await Context.Channel.SendMessageAsync(null, false, embed);
             await user.KickAsync();
+            await Context.Channel.SendSuccessAsync("Kicked", $"{user.Mention} was kicked by {Context.User.Mention}!");
         }
         [Command("ban")]
         [Summary("Ban a user")]
-        [RequireUserPermission(GuildPermission.BanMembers)]
+        [RequireUserPermission(GuildPermission.BanMembers, ErrorMessage = "You don't have permission to do that!")]
         [RequireBotPermission(GuildPermission.BanMembers)]
         public async Task Ban([Remainder] SocketGuildUser user)
         {
-            var builder = new EmbedBuilder()
-                  .WithThumbnailUrl(Context.Guild.IconUrl)
-                  .WithTitle("Ban")
-                  .WithColor(new Color(33, 176, 252))
-                  .WithDescription($"Say good night, {user.Mention}!")
-                  .AddField("Reason:", $"{Context.User.Mention} invoked the command")
-                  .WithCurrentTimestamp();
-
-            var embed = builder.Build();
             await Context.Channel.TriggerTypingAsync();
-            await Context.Channel.SendMessageAsync(null, false, embed);
             await user.BanAsync();
+            await Context.Channel.SendSuccessAsync("Banned", $"{user.Mention} was banned by {Context.User.Mention}!");
+            
         }
         [Command("prefix", RunMode = RunMode.Async)]
         [Summary("Set the bot's command prefix")]
-        [RequireUserPermission(Discord.GuildPermission.Administrator)]
+        [RequireUserPermission(Discord.GuildPermission.Administrator, ErrorMessage = "You don't have permission to do that!")]
         public async Task Prefix(string prefix = null)
         {
             if(prefix == null)
@@ -244,16 +228,8 @@ namespace Bibs_Discord.NET.Modules
             var ranks = await _ranksHelper.GetRanksAsync(Context.Guild);
             if (ranks.Count == 0)
             {
-                EmbedBuilder embedBuilder = new EmbedBuilder()
-                          .WithThumbnailUrl(Context.Guild.IconUrl)
-                          .WithTitle("Ranks")
-                          .WithColor(new Color(33, 176, 252))
-                          .WithDescription("There's no ranks on this server, consider setting up some!")
-                          .WithCurrentTimestamp();
-
-                Embed embed1 = embedBuilder.Build();
                 await Context.Channel.TriggerTypingAsync();
-                await Context.Channel.SendMessageAsync(null, false, embed1);
+                await Context.Channel.SendErrorAsync("Ranks", "There's no ranks on this server, consider setting up some!");
                 return;
             }
 
@@ -277,7 +253,7 @@ namespace Bibs_Discord.NET.Modules
         }
         [Command("addrank", RunMode = RunMode.Async)]
         [Summary("Add a rank to the list of usable ranks")]
-        [RequireUserPermission(Discord.GuildPermission.Administrator)]
+        [RequireUserPermission(Discord.GuildPermission.Administrator, ErrorMessage = "You don't have permission to do that!")]
         [RequireBotPermission(Discord.GuildPermission.ManageRoles)]
         public async Task AddRank([Remainder] string name)
         {
@@ -287,64 +263,32 @@ namespace Bibs_Discord.NET.Modules
             var role = Context.Guild.Roles.FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.CurrentCultureIgnoreCase));
             if (role == null)
             {
-                EmbedBuilder embedBuilder = new EmbedBuilder()
-                          .WithThumbnailUrl(Context.Guild.IconUrl)
-                          .WithTitle("Ranks")
-                          .WithColor(new Color(33, 176, 252))
-                          .WithDescription("That role does not exist!")
-                          .WithCurrentTimestamp();
-
-                Embed embed1 = embedBuilder.Build();
                 await Context.Channel.TriggerTypingAsync();
-                await Context.Channel.SendMessageAsync(null, false, embed1);
+                await Context.Channel.SendErrorAsync("Ranks", "That role does not exist!");
                 return;
             }
 
             if (role.Position > Context.Guild.CurrentUser.Hierarchy)
             {
-                EmbedBuilder embedBuilder = new EmbedBuilder()
-                          .WithThumbnailUrl(Context.Guild.IconUrl)
-                          .WithTitle("Ranks")
-                          .WithColor(new Color(33, 176, 252))
-                          .WithDescription("That role has a higher position than the mine!")
-                          .WithCurrentTimestamp();
-
-                Embed embed2 = embedBuilder.Build();
                 await Context.Channel.TriggerTypingAsync();
-                await Context.Channel.SendMessageAsync(null, false, embed2);
+                await Context.Channel.SendErrorAsync("Ranks", "That role has a higher position than the mine!");
                 return;
             }
 
             if (ranks.Any(x => x.Id == role.Id))
             {
-                EmbedBuilder embedBuilder = new EmbedBuilder()
-                         .WithThumbnailUrl(Context.Guild.IconUrl)
-                         .WithTitle("Ranks")
-                         .WithColor(new Color(33, 176, 252))
-                         .WithDescription("That role is already a rank!")
-                         .WithCurrentTimestamp();
-
-                Embed embed3 = embedBuilder.Build();
                 await Context.Channel.TriggerTypingAsync();
-                await Context.Channel.SendMessageAsync(null, false, embed3);
+                await Context.Channel.SendErrorAsync("Ranks", "That role is already a rank!");
                 return;
             }
 
             await _ranks.AddRankAsync(Context.Guild.Id, role.Id);
-            var builder = new EmbedBuilder()
-                  .WithThumbnailUrl(Context.Guild.IconUrl)
-                  .WithTitle("Ranks")
-                  .WithColor(new Color(33, 176, 252))
-                  .WithDescription($"The role {role.Mention} has been added to the ranks!")
-                  .WithCurrentTimestamp();
-
-            var embed = builder.Build();
             await Context.Channel.TriggerTypingAsync();
-            await Context.Channel.SendMessageAsync(null, false, embed);
+            await Context.Channel.SendSuccessAsync("Ranks", $"The role {role.Mention} has been added to the ranks!");
         }
         [Command("delrank", RunMode = RunMode.Async)]
         [Summary("Removes a rank from the list of ranks")]
-        [RequireUserPermission(GuildPermission.Administrator)]
+        [RequireUserPermission(GuildPermission.Administrator, ErrorMessage = "You don't have permission to do that!")]
         [RequireBotPermission(GuildPermission.ManageRoles)]
         public async Task DelRank([Remainder] string name)
         {
@@ -354,64 +298,32 @@ namespace Bibs_Discord.NET.Modules
             var role = Context.Guild.Roles.FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.CurrentCultureIgnoreCase));
             if (role == null)
             {
-                EmbedBuilder embedBuilder = new EmbedBuilder()
-                          .WithThumbnailUrl(Context.Guild.IconUrl)
-                          .WithTitle("Ranks")
-                          .WithColor(new Color(33, 176, 252))
-                          .WithDescription("That role does not exist!")
-                          .WithCurrentTimestamp();
-
-                Embed embed1 = embedBuilder.Build();
                 await Context.Channel.TriggerTypingAsync();
-                await Context.Channel.SendMessageAsync(null, false, embed1);
+                await Context.Channel.SendErrorAsync("Ranks", "That role does not exist!");
                 return;
             }
 
             if (ranks.Any(x => x.Id != role.Id))
             {
-                EmbedBuilder embedBuilder = new EmbedBuilder()
-                         .WithThumbnailUrl(Context.Guild.IconUrl)
-                         .WithTitle("Ranks")
-                         .WithColor(new Color(33, 176, 252))
-                         .WithDescription("That role is not a rank yet!")
-                         .WithCurrentTimestamp();
-
-                Embed embed2 = embedBuilder.Build();
                 await Context.Channel.TriggerTypingAsync();
-                await Context.Channel.SendMessageAsync(null, false, embed2);
+                await Context.Channel.SendErrorAsync("Ranks", "That role is not a rank yet!");
                 return;
             }
 
             await _ranks.RemoveRankAsync(Context.Guild.Id, role.Id);
-            var builder = new EmbedBuilder()
-                  .WithThumbnailUrl(Context.Guild.IconUrl)
-                  .WithTitle("Ranks")
-                  .WithColor(new Color(33, 176, 252))
-                  .WithDescription($"The role {role.Mention} has been removed from the ranks!")
-                  .WithCurrentTimestamp();
-
-            var embed = builder.Build();
             await Context.Channel.TriggerTypingAsync();
-            await Context.Channel.SendMessageAsync(null, false, embed);
+            await Context.Channel.SendSuccessAsync("Ranks", $"The role {role.Mention} has been removed from the ranks");
         }
         [Command("autoroles", RunMode = RunMode.Async)]
         [Summary("Lists all available autoroles")]
-        [RequireUserPermission(GuildPermission.Administrator)]
+        [RequireUserPermission(GuildPermission.Administrator, ErrorMessage = "You don't have permission to do that!")]
         public async Task AutoRoles()
         {
             var autoRoles = await _autoRolesHelper.GetAutoRolesAsync(Context.Guild);
             if (autoRoles.Count == 0)
-            {
-                EmbedBuilder embedBuilder = new EmbedBuilder()
-                          .WithThumbnailUrl(Context.Guild.IconUrl)
-                          .WithTitle("Auto Roles")
-                          .WithColor(new Color(33, 176, 252))
-                          .WithDescription("This server does not yet have any autoroles!")
-                          .WithCurrentTimestamp();
-
-                Embed embed1 = embedBuilder.Build();
+            {;
                 await Context.Channel.TriggerTypingAsync();
-                await Context.Channel.SendMessageAsync(null, false, embed1);
+                await Context.Channel.SendErrorAsync("Auto Roles", "This server does not yet have any autoroles!");
                 return;
             }
 
@@ -435,7 +347,7 @@ namespace Bibs_Discord.NET.Modules
 
         [Command("addautorole", RunMode = RunMode.Async)]
         [Summary("Set an autorole")]
-        [RequireUserPermission(GuildPermission.Administrator)]
+        [RequireUserPermission(GuildPermission.Administrator, ErrorMessage = "You don't have permission to do that!")]
         [RequireBotPermission(GuildPermission.ManageRoles)]
         public async Task AddAutoRole([Remainder] string name)
         {
@@ -445,62 +357,30 @@ namespace Bibs_Discord.NET.Modules
             var role = Context.Guild.Roles.FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.CurrentCultureIgnoreCase));
             if (role == null)
             {
-                EmbedBuilder embedBuilder = new EmbedBuilder()
-                         .WithThumbnailUrl(Context.Guild.IconUrl)
-                         .WithTitle("Auto Roles")
-                         .WithColor(new Color(33, 176, 252))
-                         .WithDescription("That role does not exist!")
-                         .WithCurrentTimestamp();
-
-                Embed embed1 = embedBuilder.Build();
-                await Context.Channel.SendMessageAsync(null, false, embed1);
+                await Context.Channel.SendErrorAsync("Auto Roles", "That role does not exist!");
                 return;
             }
 
             if (role.Position > Context.Guild.CurrentUser.Hierarchy)
             {
-                EmbedBuilder embedBuilder = new EmbedBuilder()
-                         .WithThumbnailUrl(Context.Guild.IconUrl)
-                         .WithTitle("Auto Roles")
-                         .WithColor(new Color(33, 176, 252))
-                         .WithDescription("That role has a higher position than the mine!")
-                         .WithCurrentTimestamp();
-
-                Embed embed2 = embedBuilder.Build();
-                await Context.Channel.SendMessageAsync(null, false, embed2);
+                await Context.Channel.SendErrorAsync("Auto Roles", "That role has a higher position than the mine!");
                 return;
             }
 
             if (autoRoles.Any(x => x.Id == role.Id))
             {
-                EmbedBuilder embedBuilder = new EmbedBuilder()
-                        .WithThumbnailUrl(Context.Guild.IconUrl)
-                        .WithTitle("Auto Roles")
-                        .WithColor(new Color(33, 176, 252))
-                        .WithDescription("That role is already an autorole!")
-                        .WithCurrentTimestamp();
-
-                Embed embed3 = embedBuilder.Build();
-                await Context.Channel.SendMessageAsync(null, false, embed3);
+                await Context.Channel.SendErrorAsync("Auto Roles", "That role is already an autorole!");
                 return;
             }
 
             await _autoRoles.AddAutoRoleAsync(Context.Guild.Id, role.Id);
-            var builder = new EmbedBuilder()
-                 .WithThumbnailUrl(Context.Guild.IconUrl)
-                 .WithTitle("Auto Roles")
-                 .WithColor(new Color(33, 176, 252))
-                 .WithDescription($"The role {role.Mention} has been added to the autoroles!")
-                 .WithCurrentTimestamp();
-
-            var embed = builder.Build();
-            await Context.Channel.SendMessageAsync(null, false, embed);
+            await Context.Channel.SendSuccessAsync("Auto Roles", $"The role {role.Mention} has been added to the autoroles!");
         }
 
 
         [Command("delautorole", RunMode = RunMode.Async)]
         [Summary("Delete an autorole")]
-        [RequireUserPermission(GuildPermission.Administrator)]
+        [RequireUserPermission(GuildPermission.Administrator, ErrorMessage = "You don't have permission to do that!")]
         [RequireBotPermission(GuildPermission.ManageRoles)]
         public async Task DelAutoRole([Remainder] string name)
         {
@@ -510,46 +390,24 @@ namespace Bibs_Discord.NET.Modules
             var role = Context.Guild.Roles.FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.CurrentCultureIgnoreCase));
             if (role == null)
             {
-                EmbedBuilder embedBuilder = new EmbedBuilder()
-                         .WithThumbnailUrl(Context.Guild.IconUrl)
-                         .WithTitle("Auto Roles")
-                         .WithColor(new Color(33, 176, 252))
-                         .WithDescription("That role does not exist!")
-                         .WithCurrentTimestamp();
-
-                Embed embed1 = embedBuilder.Build();
-                await Context.Channel.SendMessageAsync(null, false, embed1);
+                await Context.Channel.SendErrorAsync("Auto Roles", "That role does not exist!");
                 return;
             }
 
-            if (autoRoles.Any(x => x.Id != role.Id))
+            if (autoRoles.Any(x => x.Id == role.Id))
             {
-                EmbedBuilder embedBuilder = new EmbedBuilder()
-                         .WithThumbnailUrl(Context.Guild.IconUrl)
-                         .WithTitle("Auto Roles")
-                         .WithColor(new Color(33, 176, 252))
-                         .WithDescription("That role is not an autorole yet!")
-                         .WithCurrentTimestamp();
+                await _autoRoles.RemoveAutoRoleAsync(Context.Guild.Id, role.Id);
+                await Context.Channel.SendSuccessAsync("Auto Roles", $"The role {role.Mention} has been removed from the autoroles!");
 
-                Embed embed1 = embedBuilder.Build();
-                await Context.Channel.SendMessageAsync(null, false, embed1);
                 return;
             }
 
-            await _autoRoles.RemoveAutoRoleAsync(Context.Guild.Id, role.Id);
-            var builder = new EmbedBuilder()
-                 .WithThumbnailUrl(Context.Guild.IconUrl)
-                 .WithTitle("Auto Roles")
-                 .WithColor(new Color(33, 176, 252))
-                 .WithDescription($"The role {role.Mention} has been removed from the autoroles!")
-                 .WithCurrentTimestamp();
+            await Context.Channel.SendErrorAsync("Auto Roles", "That role is not an autorole yet!");
 
-            var embed = builder.Build();
-            await Context.Channel.SendMessageAsync(null, false, embed);
         }
         [Command("welcome")]
         [Summary("Setup the welcome module")]
-        [RequireUserPermission(GuildPermission.ManageChannels)]
+        [RequireUserPermission(GuildPermission.ManageChannels, ErrorMessage = "You don't have permission to do that!")]
         public async Task Welcome(string option = null, string value = null)
         {
             if (option == null && value == null)

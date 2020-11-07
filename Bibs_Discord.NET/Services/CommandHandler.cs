@@ -12,6 +12,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Bibs_Discord_dotNET.Ultilities;
+using Bibs_Discord_dotNET.Commons;
 
 namespace Bibs_Discord_dotNET.Services
 {
@@ -110,7 +111,24 @@ namespace Bibs_Discord_dotNET.Services
 
         private async Task OnCommandExecuted(Optional<CommandInfo> command, ICommandContext context, IResult result)
         {
-            if (command.IsSpecified && !result.IsSuccess) await context.Channel.SendMessageAsync($"Error: {result}");
+            if (result.Error == CommandError.UnmetPrecondition)
+            {
+                var embed = new EmbedBuilder
+                {
+                    Author = new EmbedAuthorBuilder
+                    {
+                        Name = $"{context.User.Username}#{context.User.Discriminator}",
+                        IconUrl = context.User.GetAvatarUrl() ?? context.User.GetDefaultAvatarUrl()
+                    },
+                    Description = result.ErrorReason.ToString(),
+                    Color = Color.Red
+                }
+                .WithCurrentTimestamp();
+                await context.Channel.SendMessageAsync(embed: embed.Build());
+                return;
+            }
+
+            if (command.IsSpecified && !result.IsSuccess) await (context.Channel as ISocketMessageChannel).SendErrorAsync("Error", result.ErrorReason);
         }
     }
 }
