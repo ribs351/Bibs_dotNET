@@ -17,7 +17,7 @@ namespace Bibs_Discord_dotNET.Commons
                 .WithAuthor(author =>
                 {
                     author
-                    .WithIconUrl("https://png2.cleanpng.com/sh/0c2b06b47e6cce509be59a4811098fa1/L0KzQYm3VME6N5dniZH0aYP2gLBuTfNwdaF6jNd7LXnmf7B6Tflkd58yfNd8aXfxPbP8kBlvbaR4ReVAY3Pog8S0VfFlQGo3SNZuM3S0Q4O1Vcc1PGM6S6Y6NUK3QYW5VsA2QWQ4SpD5bne=/kisspng-computer-icons-icon-design-business-success-5ad8920de3d132.5744253415241426059332.png")
+                    .WithIconUrl("http://clipart-library.com/image_gallery2/Success-PNG-Image.png")
                     .WithName(title);
                 }
                 )

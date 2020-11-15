@@ -13,6 +13,8 @@ using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Bibs_Discord_dotNET.Ultilities;
 using Bibs_Discord_dotNET.Commons;
+using Victoria;
+using Victoria.EventArgs;
 
 namespace Bibs_Discord_dotNET.Services
 {
@@ -25,8 +27,10 @@ namespace Bibs_Discord_dotNET.Services
         private readonly Servers _servers;
         private readonly Images _images;
         private readonly AutoRolesHelper _autoRolesHelper;
+        private readonly LavaNode _lavaNode;
 
-        public CommandHandler(IServiceProvider provider, DiscordSocketClient client, CommandService service, IConfiguration config, Servers servers, Images images, AutoRolesHelper autoRolesHelper)
+
+        public CommandHandler(IServiceProvider provider, DiscordSocketClient client, CommandService service, IConfiguration config, Servers servers, Images images, AutoRolesHelper autoRolesHelper, LavaNode lavaNode)
         {
             _provider = provider;
             _client = client;
@@ -35,17 +39,59 @@ namespace Bibs_Discord_dotNET.Services
             _servers = servers;
             _images = images;
             _autoRolesHelper = autoRolesHelper;
+            _lavaNode = lavaNode;
         }
 
         public override async Task InitializeAsync(CancellationToken cancellationToken)
         {
+            _client.Ready += OnReadyAsync;
             _client.MessageReceived += OnMessageReceived;
             _client.JoinedGuild += OnJoinedGuild;
             _client.UserJoined += OnUserJoined;
+            _client.Connected += OnStartUp;
+            _lavaNode.OnTrackEnded += OnTrackEnded;
 
             _service.CommandExecuted += OnCommandExecuted;
             await _service.AddModulesAsync(Assembly.GetEntryAssembly(), _provider);
-            await _client.SetGameAsync($"you like a damn fiddle", null, ActivityType.Playing);
+        }
+
+        private async Task OnStartUp()
+        {
+            await _client.SetGameAsync($"over {_client.Guilds.Count} servers!", null, ActivityType.Watching);
+        }
+
+        private async Task OnReadyAsync()
+        {
+            
+            if (!_lavaNode.IsConnected)
+            {
+                await _lavaNode.ConnectAsync();
+            }
+
+        }
+
+        private async Task OnTrackEnded(TrackEndedEventArgs args)
+        {
+            if (!args.Reason.ShouldPlayNext())
+            {
+                return;
+            }
+
+            var player = args.Player;
+            if (!player.Queue.TryDequeue(out var queueable))
+            {
+                await (player.TextChannel as ISocketMessageChannel).SendSuccessAsync("Music","Queue completed! Please add more tracks to rock n' roll!");
+                return;
+            }
+
+            if (!(queueable is LavaTrack track))
+            {
+                await (player.TextChannel as ISocketMessageChannel).SendErrorAsync("Music", "Next item in queue is not a track.");
+                return;
+            }
+
+            await args.Player.PlayAsync(track);
+            await (player.TextChannel as ISocketMessageChannel).SendSuccessAsync($"{args.Reason}: {args.Track.Title}", $"Now playing: {track.Title}");
         }
 
         private async Task OnUserJoined(SocketGuildUser arg)
@@ -99,6 +145,13 @@ namespace Bibs_Discord_dotNET.Services
         {
             if (!(arg is SocketUserMessage message)) return;
             if (message.Source != MessageSource.User) return;
+
+            if (message.Content.Contains("bruh"))
+            {
+                await message.Channel.TriggerTypingAsync();
+                await message.Channel.SendMessageAsync("**Ah, MAN!** This **ReAlLy** be A ***bruh*** momment.");
+                return;
+            }
 
             var argPos = 0;
             string prefix = await _servers.GetGuildPrefix((message.Channel as SocketGuildChannel).Guild.Id) ?? "!";

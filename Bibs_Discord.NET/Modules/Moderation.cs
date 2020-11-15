@@ -410,19 +410,20 @@ namespace Bibs_Discord.NET.Modules
         [RequireUserPermission(GuildPermission.ManageChannels, ErrorMessage = "You don't have permission to do that!")]
         public async Task Welcome(string option = null, string value = null)
         {
+            await Context.Channel.TriggerTypingAsync();
             if (option == null && value == null)
             {
                 var fetchedChannelId = await _servers.GetWelcomeAsync(Context.Guild.Id);
                 if (fetchedChannelId == 0)
                 {
-                    await ReplyAsync("There has not been set a welcome channel yet!");
+                    await Context.Channel.SendErrorAsync("Welcome module", "There has not been set a welcome channel yet!");
                     return;
                 }
 
                 var fetchedChannel = Context.Guild.GetTextChannel(fetchedChannelId);
                 if (fetchedChannel == null)
                 {
-                    await ReplyAsync("There has not been set a welcome channel yet!");
+                    await Context.Channel.SendErrorAsync("Welcome module", "There has not been set a welcome channel yet!");
                     await _servers.ClearWelcomeAsync(Context.Guild.Id);
                     return;
                 }
@@ -430,9 +431,9 @@ namespace Bibs_Discord.NET.Modules
                 var fetchedBackground = await _servers.GetBackgroundAsync(Context.Guild.Id);
 
                 if (fetchedBackground != null)
-                    await ReplyAsync($"The channel used for the welcome module is {fetchedChannel.Mention}.\nThe background is set to {fetchedBackground}.");
+                    await Context.Channel.SendSuccessAsync("Welcome module", $"The channel used for the welcome module is {fetchedChannel.Mention}.\nThe background is set to {fetchedBackground}.");
                 else
-                    await ReplyAsync($"The channel used for the welcome module is {fetchedChannel.Mention}.");
+                    await Context.Channel.SendSuccessAsync("Welcome module", $"The channel used for the welcome module is {fetchedChannel.Mention}.");
 
                 return;
             }
@@ -441,19 +442,19 @@ namespace Bibs_Discord.NET.Modules
             {
                 if (!MentionUtils.TryParseChannel(value, out ulong parsedId))
                 {
-                    await ReplyAsync("Please pass in a valid channel!");
+                    await Context.Channel.SendErrorAsync("Welcome module", "Please pass in a valid channel!");
                     return;
                 }
 
                 var parsedChannel = Context.Guild.GetTextChannel(parsedId);
                 if (parsedChannel == null)
                 {
-                    await ReplyAsync("Please pass in a valid channel!");
+                    await Context.Channel.SendErrorAsync("Welcome module", "Please pass in a valid channel!");
                     return;
                 }
 
                 await _servers.ModifyWelcomeAsync(Context.Guild.Id, parsedId);
-                await ReplyAsync($"Successfully modified the welcome channel to {parsedChannel.Mention}.");
+                await Context.Channel.SendSuccessAsync("Welcome module", $"Successfully modified the welcome channel to {parsedChannel.Mention}.");
                 return;
             }
 
@@ -462,23 +463,31 @@ namespace Bibs_Discord.NET.Modules
                 if (value == "clear")
                 {
                     await _servers.ClearBackgroundAsync(Context.Guild.Id);
-                    await ReplyAsync("Successfully cleared the background for this server.");
+                    await Context.Channel.SendSuccessAsync("Welcome module", "Successfully cleared the background for this server.");
                     return;
                 }
 
                 await _servers.ModifyBackgroundAsync(Context.Guild.Id, value);
-                await ReplyAsync($"Successfully modified the background to {value}.");
+                await Context.Channel.SendSuccessAsync("Welcome module", $"Successfully modified the background to {value}.");
                 return;
             }
 
             if (option == "clear" && value == null)
             {
                 await _servers.ClearWelcomeAsync(Context.Guild.Id);
-                await ReplyAsync("Successfully cleared the welcome channel.");
+                await Context.Channel.SendSuccessAsync("Welcome module", "Successfully cleared the welcome channel.");
                 return;
             }
-
-            await ReplyAsync("You did not use this command properly!");
+            await Context.Channel.SendErrorAsync("Welcome module", "You did not use this command properly!");
+        }
+        [Command("slowmode")]
+        [Summary("Sets a channel's slowmode interval to a user's desired ammount")]
+        [RequireUserPermission(GuildPermission.ManageChannels, ErrorMessage = "You don't have permission to do that!")]
+        [RequireBotPermission(GuildPermission.ManageChannels)]
+        public async Task SlowMode(int interval = 0)
+        {
+            await ((Context.Channel as SocketTextChannel).ModifyAsync(x => x.SlowModeInterval = interval));
+            await Context.Channel.SendSuccessAsync("Slowmode", $"Channel's slowmode interval has been adjusted to {interval} seconds!");
         }
     }
 }

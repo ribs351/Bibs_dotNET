@@ -13,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Victoria;
 
 namespace Bibs_Discord_dotNET
 {
@@ -59,6 +60,9 @@ namespace Bibs_Discord_dotNET
                     services
                         .AddHostedService<CommandHandler>()
                         .AddDbContext<BibsContext>()
+                        .AddLavaNode(x => {
+                            x.SelfDeaf = false;
+                        })
                         .AddSingleton<Servers>()
                         .AddSingleton<Images>()
                         .AddSingleton<Ranks>()

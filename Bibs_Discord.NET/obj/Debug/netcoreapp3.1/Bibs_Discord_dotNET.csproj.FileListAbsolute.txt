@@ -65,8 +65,9 @@ C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\bin\Debug\netcorea
 C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\obj\Debug\netcoreapp3.1\Bibs_Discord_dotNET.csprojAssemblyReference.cache
 C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\obj\Debug\netcoreapp3.1\Bibs_Discord_dotNET.AssemblyInfoInputs.cache
 C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\obj\Debug\netcoreapp3.1\Bibs_Discord_dotNET.AssemblyInfo.cs
-C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\obj\Debug\netcoreapp3.1\Bibs_Discord_dotNET.csproj.CoreCompileInputs.cache
 C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\obj\Debug\netcoreapp3.1\Bibs_Discord_dotNET.csproj.CopyComplete
 C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\obj\Debug\netcoreapp3.1\Bibs_Discord_dotNET.dll
 C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\obj\Debug\netcoreapp3.1\Bibs_Discord_dotNET.pdb
 C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\obj\Debug\netcoreapp3.1\Bibs_Discord_dotNET.genruntimeconfig.cache
+C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\bin\Debug\netcoreapp3.1\Victoria.dll
+C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\obj\Debug\netcoreapp3.1\Bibs_Discord_dotNET.csproj.CoreCompileInputs.cache

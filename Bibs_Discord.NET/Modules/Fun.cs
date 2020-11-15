@@ -1,4 +1,5 @@
-﻿using Bibs_Infrastructure;
+﻿using Bibs_Discord_dotNET.Commons;
+using Bibs_Infrastructure;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -62,6 +63,11 @@ namespace Bibs_Discord.NET.Modules
         {
             var client = new HttpClient();
             var result = await client.GetStringAsync("https://us-central1-dadsofunny.cloudfunctions.net/DadJokes/random/jokes");
+            if (result == null)
+            {
+                await Context.Channel.SendErrorAsync("Dad Joke API", "Something went wrong with the Dad Joke API!");
+                return;
+            }
             var joke = JsonConvert.DeserializeObject<dynamic>(result);
 
             var builder = new EmbedBuilder()
