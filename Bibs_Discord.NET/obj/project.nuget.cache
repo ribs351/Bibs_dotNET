@@ -1,10 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "QcayWtdMxG+Sd7lLaPLfbnfwy3dhmCigdTPGVUofjpehN5a0vMDUG9XL5w1mCCTOXQEk5ylVoSDxVF+SL06XWA==",
+  "dgSpecHash": "uKXwwRht9dbjA4PA08AheisRioMJt6l02iTYMHfrPCQ5yXUfrcOPUCmHQckR0RdAdE8FAgZzrjvjpSGRP5h/Lw==",
   "success": true,
   "projectFilePath": "C:\\Users\\Admin\\source\\repos\\Bibs_Discord.NET\\Bibs_Discord.NET\\Bibs_Discord_dotNET.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Admin\\.nuget\\packages\\discord.addons.hosting\\3.0.0\\discord.addons.hosting.3.0.0.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\discord.addons.interactive\\2.0.0\\discord.addons.interactive.2.0.0.nupkg.sha512",
     "C:\\Users\\Admin\\.nuget\\packages\\discord.net\\2.2.0\\discord.net.2.2.0.nupkg.sha512",
     "C:\\Users\\Admin\\.nuget\\packages\\discord.net.commands\\2.2.0\\discord.net.commands.2.2.0.nupkg.sha512",
     "C:\\Users\\Admin\\.nuget\\packages\\discord.net.core\\2.2.0\\discord.net.core.2.2.0.nupkg.sha512",

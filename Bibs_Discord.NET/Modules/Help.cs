@@ -2,6 +2,7 @@
 using Bibs_Infrastructure;
 using Discord;
 using Discord.Commands;
+using Discord.Addons.Interactive;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using System;
@@ -12,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Bibs_Discord.NET.Modules
 {
-    public class Help : ModuleBase<SocketCommandContext>
+    public class Help : InteractiveBase
     {
         private readonly CommandService _service;
         private readonly Servers _servers;
@@ -24,33 +25,19 @@ namespace Bibs_Discord.NET.Modules
         [Command("help")]
         public async Task HelpAsync()
         {
-            var prefix = await _servers.GetGuildPrefix((Context.Channel as SocketGuildChannel).Guild.Id) ?? "!";
-            var builder = new EmbedBuilder()
-            {
-                Color = new Color(114, 137, 218),
-                Description = "These are the commands you can use"
-            };
+            List<string> Pages = new List<string>();
+            string prefix = await _servers.GetGuildPrefix((Context.Channel as SocketGuildChannel).Guild.Id) ?? "!";
+
             foreach (var module in _service.Modules)
             {
-                string description = null;
-                foreach (var cmd in module.Commands)
+                string page = $"**{module.Name}**\n\n";
+                foreach (var command in module.Commands)
                 {
-                    var result = await cmd.CheckPreconditionsAsync(Context);
-                    if (result.IsSuccess)
-                        description += $"{prefix}{cmd.Aliases.First()}\n";
+                    page += $"`{prefix}{command.Aliases.First()}` - {command.Summary ?? "No description found"}\n"; 
                 }
-                if (!string.IsNullOrWhiteSpace(description))
-                {
-                    builder.AddField(x =>
-                    {
-                        x.Name = module.Name;
-                        x.Value = description;
-                        x.IsInline = false;
-                    });
-                }
+                Pages.Add(page);
             }
-            await Context.Channel.TriggerTypingAsync();
-            await ReplyAsync("", false, builder.Build());
+            await PagedReplyAsync(Pages);
         }
         [Command("help")]
         public async Task HelpAsync(string command)

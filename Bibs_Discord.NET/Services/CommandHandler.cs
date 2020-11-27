@@ -49,10 +49,29 @@ namespace Bibs_Discord_dotNET.Services
             _client.JoinedGuild += OnJoinedGuild;
             _client.UserJoined += OnUserJoined;
             _client.Connected += OnStartUp;
+            _client.UserIsTyping += OnUserIsTyping;
+            _client.LeftGuild += OnLeftGuild;
             _lavaNode.OnTrackEnded += OnTrackEnded;
 
             _service.CommandExecuted += OnCommandExecuted;
             await _service.AddModulesAsync(Assembly.GetEntryAssembly(), _provider);
+        }
+
+        private async Task OnLeftGuild(SocketGuild arg)
+        {
+            await _client.SetGameAsync($"over {_client.Guilds.Count} servers!", null, ActivityType.Watching);
+        }
+
+        private async Task OnUserIsTyping(SocketUser u, ISocketMessageChannel m)
+        {
+            if (u.IsBot) return;
+            int random = new Random().Next(0, 1000);
+            string username = u.Username;
+            if (random == 5)
+            {
+                await m.TriggerTypingAsync();
+                await m.SendMessageAsync($"Watcha typin' there, {username}?");
+            }
         }
 
         private async Task OnStartUp()
@@ -138,28 +157,77 @@ namespace Bibs_Discord_dotNET.Services
                  .WithCurrentTimestamp();
             var embed = builder.Build();
             await arg.DefaultChannel.SendMessageAsync(null, false, embed);
+            await _client.SetGameAsync($"over {_client.Guilds.Count} servers!", null, ActivityType.Watching);
         }
        
 
         private async Task OnMessageReceived(SocketMessage arg)
         {
+
+
             if (!(arg is SocketUserMessage message)) return;
             if (message.Source != MessageSource.User) return;
 
-            if (message.Content.Contains("bruh"))
+            string[] pottyMouth = new string[] { 
+                "faggot",
+                "faggots",
+                "nigger",
+                "niggers",
+                "nigga",
+                "niggas",
+                "fag",
+                "fags",
+                "faggy", 
+                "niglet",
+                "niglets",
+                "towelhead",
+                "towelheads",
+                "negro",
+                "negros",
+                "chink",
+                "chinks",
+                "zipperhead",
+                "zipperheads",
+                "beaner",
+                "beaners",
+                "coon",
+                "coons",
+                "kike",
+                "kikes",
+                "jewboy",
+                "jewboys"
+            };
+
+            if ((message.ToString().IndexOf("hello there", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
             {
                 await message.Channel.TriggerTypingAsync();
-                await message.Channel.SendMessageAsync("**Ah, MAN!** This **ReAlLy** be A ***bruh*** momment.");
+                await message.Channel.SendMessageAsync("GENERAL KENOBI!");
                 return;
             }
+            if ((message.ToString().IndexOf("bruh", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
+            {
+                await message.Channel.TriggerTypingAsync();
+                await message.Channel.SendMessageAsync("**Ah, MAN!** This **ReAlLy** be A ***bruh*** moment.");
+                return;
+            }
+
+            if (message.Content.ToString().ToLower().Split(" ").Intersect(pottyMouth).Any())
+            {
+                await message.DeleteAsync(options: new RequestOptions()
+                {
+                    AuditLogReason = $"{message.Author.Mention} said {message.Content.ToString()}"
+                });
+                await message.Channel.SendErrorAsync("Hey!", $"{message.Author.Mention} You can't say that!");
+                return;
+            }
+
 
             var argPos = 0;
             string prefix = await _servers.GetGuildPrefix((message.Channel as SocketGuildChannel).Guild.Id) ?? "!";
             if (!message.HasStringPrefix(prefix, ref argPos) && !message.HasMentionPrefix(_client.CurrentUser, ref argPos)) return;
 
             var context = new SocketCommandContext(_client, message);
-            await _service.ExecuteAsync(context, argPos, _provider);
-
+            await _service.ExecuteAsync(context, argPos, _provider);    
         }
 
         private async Task OnCommandExecuted(Optional<CommandInfo> command, ICommandContext context, IResult result)

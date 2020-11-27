@@ -16,6 +16,19 @@
           "lib/netstandard2.1/Discord.Addons.Hosting.dll": {}
         }
       },
+      "Discord.Addons.Interactive/2.0.0": {
+        "type": "package",
+        "dependencies": {
+          "Discord.Net.Commands": "2.2.0",
+          "Discord.Net.WebSocket": "2.2.0"
+        },
+        "compile": {
+          "lib/netstandard2.0/Discord.Addons.Interactive.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/Discord.Addons.Interactive.dll": {}
+        }
+      },
       "Discord.Net/2.2.0": {
         "type": "package",
         "dependencies": {
@@ -846,6 +859,18 @@
         "icon.png",
         "lib/netstandard2.0/Discord.Addons.Hosting.dll",
         "lib/netstandard2.1/Discord.Addons.Hosting.dll"
+      ]
+    },
+    "Discord.Addons.Interactive/2.0.0": {
+      "sha512": "j/bkGeDniPuODOOC+3ZpKvLmoG0z1NHSZrVu6bnaUEYd0tMY4TxaIwl36ue7fK9MXrqQc8VcjcDnvM6JX+V6HA==",
+      "type": "package",
+      "path": "discord.addons.interactive/2.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "discord.addons.interactive.2.0.0.nupkg.sha512",
+        "discord.addons.interactive.nuspec",
+        "lib/netstandard2.0/Discord.Addons.Interactive.dll"
       ]
     },
     "Discord.Net/2.2.0": {
@@ -2360,6 +2385,7 @@
     ".NETCoreApp,Version=v3.1": [
       "Bibs_Infrastructure >= 1.0.0",
       "Discord.Addons.Hosting >= 3.0.0",
+      "Discord.Addons.Interactive >= 2.0.0",
       "Discord.Net >= 2.2.0",
       "Discord.Net.Commands >= 2.2.0",
       "Discord.Net.Core >= 2.2.0",
@@ -2422,6 +2448,10 @@
           "Discord.Addons.Hosting": {
             "target": "Package",
             "version": "[3.0.0, )"
+          },
+          "Discord.Addons.Interactive": {
+            "target": "Package",
+            "version": "[2.0.0, )"
           },
           "Discord.Net": {
             "target": "Package",

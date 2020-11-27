@@ -7,6 +7,7 @@ using Bibs_Discord_dotNET.Utilities;
 using Bibs_Infrastructure;
 using Discord;
 using Discord.Addons.Hosting;
+using Discord.Addons.Interactive;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
@@ -63,6 +64,7 @@ namespace Bibs_Discord_dotNET
                         .AddLavaNode(x => {
                             x.SelfDeaf = false;
                         })
+                        .AddSingleton<InteractiveService>()
                         .AddSingleton<Servers>()
                         .AddSingleton<Images>()
                         .AddSingleton<Ranks>()

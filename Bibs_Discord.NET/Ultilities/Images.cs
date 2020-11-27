@@ -97,11 +97,13 @@ namespace Bibs_Discord_dotNET.Utilities
 
         private Image DrawTextToImage(Image image, string header, string subheader)
         {
-            var roboto = new Font("Roboto", 30, FontStyle.Regular);
-            var robotoSmall = new Font("Roboto", 23, FontStyle.Regular);
+            //I'm terrible at explaining because I'm not sure what the heck I'm doing most of the time
+            //don't need these anymore since image paths asks for font family instead of fonts apparently
+            //var roboto = new Font("Roboto", 30, FontStyle.Regular);
+            //var robotoSmall = new Font("Roboto", 23, FontStyle.Regular);
 
-            var brushWhite = new SolidBrush(Color.White);
-            var brushGrey = new SolidBrush(ColorTranslator.FromHtml("#738276"));
+            var brushBig = new SolidBrush(Color.White);
+            var brushSmall = new SolidBrush(Color.Gray);
 
             var headerX = image.Width / 2;
             var headerY = (image.Height / 2) + 115;
@@ -114,12 +116,37 @@ namespace Bibs_Discord_dotNET.Utilities
                 LineAlignment = StringAlignment.Center,
                 Alignment = StringAlignment.Center
             };
+            //make 2 new graphic paths
+            GraphicsPath myPathBig = new GraphicsPath();
+            GraphicsPath myPathSmall = new GraphicsPath();
 
             using var GrD = Graphics.FromImage(image);
-            GrD.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
-            GrD.DrawString(header, roboto, brushWhite, headerX, headerY, drawFormat);
-            GrD.DrawString(subheader, robotoSmall, brushGrey, subheaderX, subheaderY, drawFormat);
+            //because Graphics.DrawString expects “point size” 
+            //while GraphicsPath.AddString expects “em size” 
+            //The conversion formula is simply emSize = GrD.DpiY * pointSize / 72.
+            //Where GrD.DpiY is the vertical dimension of the image and pointSize being the size you want the text to be
+            int emSizeBig = (int)(GrD.DpiY * 30 / 72);
+            int emSizeSmall = (int)(GrD.DpiY * 23 / 72);
 
+            //void GraphicsPath.AddString goes something like this
+            //(the string you want -> in this case it's the header, font family, font style implicitly casted in int, emSize, origin point, drawFormat )
+            myPathBig.AddString(header, new FontFamily("roboto"), (int)FontStyle.Regular, emSizeBig, new Point(headerX, headerY), drawFormat);
+            myPathSmall.AddString(subheader, new FontFamily("roboto"), (int)FontStyle.Regular, emSizeSmall, new Point(subheaderX, subheaderY), drawFormat);
+
+            GrD.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit; //forgot what this does, if it's useless in this context then I'll probs get rid of it
+
+            //old code that draws text without the stroke
+            //GrD.DrawString(header, roboto, brushWhite, headerX, headerY, drawFormat);
+            //GrD.DrawString(subheader, robotoSmall, brushGrey, subheaderX, subheaderY, drawFormat);
+            
+            GrD.SmoothingMode = SmoothingMode.AntiAlias; //AntiAlias makes stuff looks smoother
+
+            //DrawPath draws the stroke while FillPath fills the text path with color
+            GrD.DrawPath(new Pen(Brushes.Black, 4), myPathBig);
+            GrD.FillPath(brushBig, myPathBig);
+            GrD.DrawPath(new Pen(Brushes.Black, 4), myPathSmall);
+            GrD.FillPath(brushSmall, myPathSmall);
+            
             var img = new Bitmap(image);
             return img;
         }

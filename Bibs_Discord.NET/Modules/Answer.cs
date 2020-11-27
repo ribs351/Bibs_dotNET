@@ -1,14 +1,6 @@
-﻿using Bibs_Discord_dotNET.Commons;
-using Bibs_Discord_dotNET.Ultilities;
-using Bibs_Infrastructure;
-using Discord;
+﻿using Bibs_Discord_dotNET.Preconditions;
 using Discord.Commands;
-using Discord.WebSocket;
-using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Bibs_Discord.NET.Modules
@@ -18,6 +10,7 @@ namespace Bibs_Discord.NET.Modules
 
         [Command("answer")]
         [Summary("Answers a yes no question, much like the magic eightball")]
+        [Cooldown(20)]
         public async Task AnswerQuestion([Remainder] string question)
         {
             Random random = new Random();

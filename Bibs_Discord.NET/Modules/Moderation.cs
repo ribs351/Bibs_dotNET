@@ -12,6 +12,7 @@ using Bibs_Discord_dotNET.Ultilities;
 using Microsoft.EntityFrameworkCore.Internal;
 using Discord.Rest;
 using Bibs_Discord_dotNET.Commons;
+using System.Diagnostics;
 
 namespace Bibs_Discord.NET.Modules
 {
@@ -38,6 +39,7 @@ namespace Bibs_Discord.NET.Modules
 
         [Command("say"), Alias("s")]
         [Summary("Make Bibs say what you want")]
+        [RequireOwner]
         public async Task Say([Remainder] string text)
         {
             await Context.Message.DeleteAsync();
@@ -488,6 +490,79 @@ namespace Bibs_Discord.NET.Modules
         {
             await ((Context.Channel as SocketTextChannel).ModifyAsync(x => x.SlowModeInterval = interval));
             await Context.Channel.SendSuccessAsync("Slowmode", $"Channel's slowmode interval has been adjusted to {interval} seconds!");
+        }
+        [Command("stats")]
+        [Summary("Shares the bot summary here")]
+        public async Task BotMainStats()
+        {
+            var time = DateTime.Now - Process.GetCurrentProcess().StartTime;
+            var upTime = "I Have Been Up For: ";
+
+            if (time.Days > 0)
+            {
+                if (time.Hours <= 0 || time.Minutes <= 0)
+                {
+                    upTime += $"{time.Days} Day(s) and ";
+                }
+                else
+                {
+                    upTime += $"{time.Days} Day(s),";
+                }
+            }
+
+            if (time.Hours > 0)
+            {
+                if (time.Minutes > 0)
+                {
+                    upTime += $" {time.Hours} Hour(s), ";
+                }
+                else
+                {
+                    upTime += $"{time.Hours} Hour(s) And ";
+                }
+            }
+
+            if (time.Minutes > 0)
+            {
+                upTime += $"{time.Minutes} Minute(s)";
+            }
+
+            if (time.Seconds >= 0)
+            {
+                if (time.Hours > 0 || time.Minutes > 0)
+                {
+                    upTime += $" And {time.Seconds} Second(s)";
+                }
+                else
+                {
+                    upTime += $"{time.Seconds} Second(s)";
+                }
+            }
+
+            var process = Process.GetCurrentProcess();
+            var mem = process.PrivateMemorySize64;
+            var memory = mem / 1024 / 1024;
+            var totalUsers = Context.Client.Guilds.Sum(guild => guild.MemberCount);
+
+            var builder = new EmbedBuilder();
+            builder.WithTitle("Bibs's Stats:");
+            builder.WithDescription("You wanna get to know me better huh?");
+            builder.WithThumbnailUrl(Context.Client.CurrentUser.GetAvatarUrl());
+            builder.WithColor(new Color(0x00ff00));
+            builder.AddField("Ping:", $"```fix\n{Context.Client.Latency}ms```", true);
+            builder.AddField("Total Servers:", $"```fix\n{Context.Client.Guilds.Count} Servers```", true);
+            builder.AddField("Total Users:", $"```fix\n{totalUsers} total users```", true);
+            builder.WithCurrentTimestamp();
+            builder.AddField("Memory Usage:", $"```fix\n{memory}Mb```", true);
+            builder.AddField("Up-time:", $"```prolog\n{upTime}```", true);
+            builder.WithFooter(
+                x =>
+                {
+                    x.WithText($"Stats | Requested by {Context.User.Username}");
+                    x.WithIconUrl(Context.User.GetAvatarUrl());
+                });
+            // Sends message and deletes
+            await ReplyAsync(string.Empty, false, builder.Build());
         }
     }
 }

@@ -1,15 +1,16 @@
 ﻿using Bibs_Discord_dotNET.Commons;
 using Bibs_Discord_dotNET.Ultilities;
-using Bibs_Infrastructure;
+using Bibs_Discord_dotNET.Preconditions;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Net.Http;
+using Newtonsoft.Json;
 
 namespace Bibs_Discord.NET.Modules
 {
@@ -26,14 +27,58 @@ namespace Bibs_Discord.NET.Modules
 
         [Command("ping")]
         [Summary("Check if Bibs is alive or not")]
+        [Cooldown(5)]
+
         public async Task Ping()
         {
             await Context.Channel.TriggerTypingAsync();
             await Context.Channel.SendMessageAsync($"Took me {Context.Client.Latency} ms to think about it, but I'm alive.");
         }
 
+        [Command("getbibs")]
+        [Summary("Gets an invite link for Bibs")]
+        public async Task GetBibs()
+        {
+            await Context.Channel.TriggerTypingAsync();
+            await Context.Channel.SendSuccessAsync("Want to invite me?", "Use this link to invite me to your server: https://discord.com/oauth2/authorize?client_id=767616736941309962&scope=bot&permissions=8");
+        }
+
+        [Command("owo")]
+        [Summary("OwO")]
+        [Cooldown(20)]
+        public async Task OWO([Remainder]string phrase)
+        {
+            String str = phrase.Replace("r", "w");
+            str = str.Replace("l", "w");
+            await ReplyAsync($"*" + str + " uwu*");
+        }
+        [Command("neko", RunMode = RunMode.Async)]
+        [Summary("Get a random catgirl")]
+        [RequireNsfw]
+        [Cooldown(60)]
+        public async Task CatGirl()
+        {
+            var client = new HttpClient();
+            var result = await client.GetStringAsync("https://nekos.moe/api/v1/random/image?count=1&nsfw=false");
+            if (result == null)
+            {
+                await Context.Channel.SendErrorAsync("Neko API", "Something went wrong with the Neko API!");
+                return;
+            }
+            var neko = JsonConvert.DeserializeObject<dynamic>(result);
+
+            var builder = new EmbedBuilder()
+               .WithColor(new Color(33, 176, 252))
+               .WithTitle("Neko")
+               .WithUrl($"https://nekos.moe/image/{neko.images[0].id.ToString()}")
+               .WithImageUrl($"https://nekos.moe/image/{neko.images[0].id.ToString()}");
+            await Context.Channel.TriggerTypingAsync();
+            await ReplyAsync(embed: builder.Build());
+        }
+
         [Command("avatar")]
         [Summary("Get a user's avatar")]
+        [Cooldown(5)]
         public async Task Avatar([Remainder] SocketGuildUser user = null)
         {
            
@@ -51,6 +96,7 @@ namespace Bibs_Discord.NET.Modules
         }
         [Command("info")]
         [Summary("Get information on either yourself or another user's")]
+        [Cooldown(5)]
         public async Task Info([Remainder] SocketGuildUser user = null)
         {
             if (user == null)
@@ -90,6 +136,7 @@ namespace Bibs_Discord.NET.Modules
         }
         [Command("serverinfo")]
         [Summary("Get server info")]
+        [Cooldown(5)]
         public async Task Server()
         {
             var builder = new EmbedBuilder()

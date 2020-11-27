@@ -1,5 +1,6 @@
 ﻿using Bibs_Discord_dotNET.Commons;
 using Bibs_Infrastructure;
+using Bibs_Discord_dotNET.Preconditions;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -16,6 +17,7 @@ using System.Threading.Tasks;
 
 namespace Bibs_Discord.NET.Modules
 {
+    [RequireChannel("bot_spam")]
     public class Fun : ModuleBase<SocketCommandContext>
     {
         private readonly ILogger<Fun> _logger;
@@ -29,6 +31,7 @@ namespace Bibs_Discord.NET.Modules
         }
         [Command("birthday", RunMode = RunMode.Async)]
         [Summary("Posts the rats birthday mixtape lyrics")]
+        [Cooldown(20)]
         public async Task Birthday([Remainder] string user = null)
         {
             if (user == null)
@@ -43,6 +46,7 @@ namespace Bibs_Discord.NET.Modules
                 var embed = builder.Build();
                 await Context.Channel.TriggerTypingAsync();
                 await Context.Channel.SendMessageAsync(null, false, embed);
+
             }
             else
             {
@@ -59,6 +63,7 @@ namespace Bibs_Discord.NET.Modules
         }
         [Command("joke", RunMode = RunMode.Async)]
         [Summary("Get a random dad joke")]
+        [Cooldown(10)]
         public async Task Joke()
         {
             var client = new HttpClient();
@@ -77,10 +82,10 @@ namespace Bibs_Discord.NET.Modules
             await Context.Channel.TriggerTypingAsync();
             await ReplyAsync(embed: builder.Build());
         }
-
         [Command("meme", RunMode = RunMode.Async)]
         [Alias("reddit")]
         [Summary("Get a random post from a subreddit, default is r/memes")]
+        [Cooldown(20)]
         public async Task Meme(string subreddit = null)
         {
             var client = new HttpClient();
@@ -112,6 +117,7 @@ namespace Bibs_Discord.NET.Modules
         [Command("md5", RunMode = RunMode.Async)]
         [Alias("hash")]
         [Summary("Turn user input into an MD5 hash")]
+        [Cooldown(20)]
         public async Task MD5([Remainder] string input)
         {
             StringBuilder hash = new StringBuilder();
@@ -127,6 +133,7 @@ namespace Bibs_Discord.NET.Modules
         }
         [Command("mods")]
         [Summary("Promote Ribs's stellaris mods")]
+        [Cooldown(20)]
         public async Task Mods()
         {
             var builder = new EmbedBuilder()
@@ -143,6 +150,7 @@ namespace Bibs_Discord.NET.Modules
         }
         [Command("nukes")]
         [Summary("Gives you a random 6 digit number")]
+        [RequireOwner]
         public async Task Nukes()
         {
             Random rnd = new Random();
@@ -172,13 +180,135 @@ namespace Bibs_Discord.NET.Modules
         }
         [Command("nnn")]
         [Summary("Activate No Nut November")]
-        [RequireUserPermission(Discord.GuildPermission.Administrator)]
-        public async Task NoNutNovember() 
+        [RequireOwner]
+        public async Task NoNutNovember()
         {
             NNN = !NNN;
             await Context.Channel.TriggerTypingAsync();
             await ReplyAsync($"Warning: No Nut November is now: {NNN.ToString()}!");
-                
+
+        }
+        [Command("rr", RunMode = RunMode.Async)]
+        [Summary("Play a game of russian roulette")]
+        [Cooldown(20)]
+        public async Task RR()
+        {
+            var role = Context.Guild.Roles.FirstOrDefault(x => x.Name == "Muted"); // Fetch the role you're using to mute someone
+            if (role == null) // Create the role if there is no muted role yet
+            {
+                var newRole = await Context.Guild.CreateRoleAsync("Muted", new GuildPermissions(sendMessages: false, addReactions: false, connect: false, speak: false), null, false, null);
+                role = Context.Guild.Roles.FirstOrDefault(x => x.Id == newRole.Id);
+            }
+
+            foreach (var channel in Context.Guild.Channels) // Loop over all channels
+            {
+                if (!channel.GetPermissionOverwrite(role).HasValue ||                              // Check if the channel has the correct permissions for the muted role                             
+                    channel.GetPermissionOverwrite(role).Value.SendMessages == PermValue.Allow ||  // If not, update the permissions of the role
+                    channel.GetPermissionOverwrite(role).Value.AddReactions == PermValue.Allow ||
+                    channel.GetPermissionOverwrite(role).Value.Connect == PermValue.Allow ||
+                    channel.GetPermissionOverwrite(role).Value.Speak == PermValue.Allow)
+                {
+                    await channel.AddPermissionOverwriteAsync(role,
+                        new OverwritePermissions(sendMessages: PermValue.Deny, addReactions: PermValue.Deny, connect: PermValue.Deny,
+                            speak: PermValue.Deny));
+                }
+            }
+
+            String reason = "";
+            int bullet = new Random().Next(0, 5);
+            if (bullet == 1)
+            {
+                var channel = await Context.User.GetOrCreateDMChannelAsync();
+                await channel.SendMessageAsync(reason == null ? $"You've been muted in {Context.Guild.Name} for 2 minutes. You've died in a game of Russian Roulette." : $"You've been muted in {Context.Guild.Name} for 2 minutes. You've died in a game of Russian Roulette. Try again if you dare.");
+                var user = (Context.User as SocketGuildUser);
+                await Task.Delay(2000);
+                await user.AddRoleAsync(role);
+                await Context.Channel.TriggerTypingAsync();
+                await ReplyAsync(reason == null ? $"The chamber was loaded! {Context.User.Username} shot themself in the head!" : $"The chamber was loaded! {Context.User.Username} shot themself in the head!");
+
+                await Task.Delay(120000);
+                await user.RemoveRoleAsync(role);
+                await channel.SendMessageAsync($"You've been revived in {Context.Guild.Name}");
+            }
+            else
+            {
+                await Context.Channel.TriggerTypingAsync();
+                await ReplyAsync(reason == null ? $"The chamber was empty! {Context.User.Username} has survived!" : $"The chamber was empty! {Context.User.Username} has survived!");
+            }
+
+        }
+        [Command("rps")]
+        [Summary("Play a game of rock paper scissors")]
+        [Cooldown(20)]
+        public async Task RockRPS(string choice)
+        {
+            if (choice.Contains("paper") || choice.Contains("scissors") || choice.Contains("rock"))
+            {
+                int winner = new Random().Next(1, 4);
+                if (winner == 1)
+                {
+                    Random random = new Random();
+                    string[] responses = new string[]{
+                        "Aww man, I lost!", 
+                        "Dammit!",
+                        "One more go, I'll get it next time!",
+                        "I've lost? H-How? I had you!"
+                    };
+                    await Context.Channel.TriggerTypingAsync();
+                    await ReplyAsync($"{responses[random.Next(0, responses.Length)]}");
+                }
+                else
+                {
+                    Random random = new Random();
+                    string[] responses = new string[]{
+                        "I've won! Hah!",
+                        "Hehe, you lost this time.",
+                        "You've done well to lose against me.",
+                        "Outplayed! Don't feel bad, I'm just that great yknow?"
+                    };
+                    await Context.Channel.TriggerTypingAsync();
+                    await ReplyAsync($"{responses[random.Next(0, responses.Length)]}");
+                }
+            }
+            else
+            {
+                await ReplyAsync("Please select 'rock', 'paper' or 'scissors'.");
+            }
+        }
+
+        [Command("coin")]
+        [Summary("Coin toss")]
+        [Cooldown(5)]
+        public async Task coin()
+        {   //generate a random number between 0 and 1 and assigns heads and tails to each
+            int rolledNumber = new Random().Next(2);
+            if (rolledNumber == 0)
+            {
+                await ReplyAsync("Heads");
+            }
+            else if (rolledNumber == 1)
+            {
+                await ReplyAsync("Tails");
+            }
+            else
+            {
+                await Context.Channel.SendErrorAsync("Error", "Sorry, an error has occured, please try again");
+            }
+        }
+        [Command("dice")]
+        [Summary("rolls a n-sided dice")]
+        [Cooldown(5)]
+        public async Task dice(int sides = 6)
+        {
+            if (sides >= 2 && sides <= 255)
+            {
+                int rolledNumber = new Random().Next(sides);
+                await ReplyAsync($"You rolled {(rolledNumber + 1).ToString()}");
+            }
+            else
+            {
+                await Context.Channel.SendErrorAsync("Error", $"You've entered {sides}, please try again\nMin: 2 | max: 255!");
+            }
         }
     }
 }
