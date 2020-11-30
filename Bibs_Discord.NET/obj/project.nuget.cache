@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "uKXwwRht9dbjA4PA08AheisRioMJt6l02iTYMHfrPCQ5yXUfrcOPUCmHQckR0RdAdE8FAgZzrjvjpSGRP5h/Lw==",
+  "dgSpecHash": "jz4HP8414vHxqlbDZ2ocr2fNyz39QrQBRNsj290C/6SHMm7BdzKUmZhUxPSNXaqysn7o+fApLf3pwS+xxtZByg==",
   "success": true,
   "projectFilePath": "C:\\Users\\Admin\\source\\repos\\Bibs_Discord.NET\\Bibs_Discord.NET\\Bibs_Discord_dotNET.csproj",
   "expectedPackageFiles": [
@@ -12,6 +12,7 @@
     "C:\\Users\\Admin\\.nuget\\packages\\discord.net.rest\\2.2.0\\discord.net.rest.2.2.0.nupkg.sha512",
     "C:\\Users\\Admin\\.nuget\\packages\\discord.net.webhook\\2.2.0\\discord.net.webhook.2.2.0.nupkg.sha512",
     "C:\\Users\\Admin\\.nuget\\packages\\discord.net.websocket\\2.2.0\\discord.net.websocket.2.2.0.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\kitsu\\1.4.2\\kitsu.1.4.2.nupkg.sha512",
     "C:\\Users\\Admin\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\1.1.1\\microsoft.bcl.asyncinterfaces.1.1.1.nupkg.sha512",
     "C:\\Users\\Admin\\.nuget\\packages\\microsoft.bcl.hashcode\\1.1.0\\microsoft.bcl.hashcode.1.1.0.nupkg.sha512",
     "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder\\microsoft.csharp\\4.5.0\\microsoft.csharp.4.5.0.nupkg.sha512",

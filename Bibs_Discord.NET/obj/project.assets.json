@@ -103,6 +103,18 @@
           "lib/netstandard2.1/Discord.Net.WebSocket.dll": {}
         }
       },
+      "Kitsu/1.4.2": {
+        "type": "package",
+        "dependencies": {
+          "Newtonsoft.Json": "11.0.1"
+        },
+        "compile": {
+          "lib/netstandard2.0/Kitsu.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/Kitsu.dll": {}
+        }
+      },
       "Microsoft.Bcl.AsyncInterfaces/1.1.1": {
         "type": "package",
         "compile": {
@@ -965,6 +977,18 @@
         "lib/netstandard2.0/Discord.Net.WebSocket.xml",
         "lib/netstandard2.1/Discord.Net.WebSocket.dll",
         "lib/netstandard2.1/Discord.Net.WebSocket.xml"
+      ]
+    },
+    "Kitsu/1.4.2": {
+      "sha512": "lzb2ZSD2FSReOzOESJtyhEVfKwJr1HsZFSIQW4aPsBRwLXUt4BoBC2erScHotw4QE/hfSpWeNe2fiL4vl89Ykg==",
+      "type": "package",
+      "path": "kitsu/1.4.2",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "kitsu.1.4.2.nupkg.sha512",
+        "kitsu.nuspec",
+        "lib/netstandard2.0/Kitsu.dll"
       ]
     },
     "Microsoft.Bcl.AsyncInterfaces/1.1.1": {
@@ -2390,6 +2414,7 @@
       "Discord.Net.Commands >= 2.2.0",
       "Discord.Net.Core >= 2.2.0",
       "Discord.Net.WebSocket >= 2.2.0",
+      "Kitsu >= 1.4.2",
       "Microsoft.Extensions.Configuration >= 3.1.9",
       "Microsoft.Extensions.DependencyInjection >= 3.1.9",
       "Microsoft.Extensions.Hosting >= 3.1.9",
@@ -2429,6 +2454,7 @@
       },
       "frameworks": {
         "netcoreapp3.1": {
+          "targetAlias": "netcoreapp3.1",
           "projectReferences": {
             "C:\\Users\\Admin\\source\\repos\\Bibs_Discord.NET\\Bibs_Infrastructure\\Bibs_Infrastructure.csproj": {
               "projectPath": "C:\\Users\\Admin\\source\\repos\\Bibs_Discord.NET\\Bibs_Infrastructure\\Bibs_Infrastructure.csproj"
@@ -2444,6 +2470,7 @@
     },
     "frameworks": {
       "netcoreapp3.1": {
+        "targetAlias": "netcoreapp3.1",
         "dependencies": {
           "Discord.Addons.Hosting": {
             "target": "Package",
@@ -2468,6 +2495,10 @@
           "Discord.Net.WebSocket": {
             "target": "Package",
             "version": "[2.2.0, )"
+          },
+          "Kitsu": {
+            "target": "Package",
+            "version": "[1.4.2, )"
           },
           "Microsoft.Extensions.Configuration": {
             "target": "Package",
@@ -2513,7 +2544,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.403\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.100\\RuntimeIdentifierGraph.json"
       }
     }
   }

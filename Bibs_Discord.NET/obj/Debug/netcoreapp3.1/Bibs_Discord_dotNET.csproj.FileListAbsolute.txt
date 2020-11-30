@@ -71,4 +71,5 @@ C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\obj\Debug\netcorea
 C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\obj\Debug\netcoreapp3.1\Bibs_Discord_dotNET.genruntimeconfig.cache
 C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\bin\Debug\netcoreapp3.1\Victoria.dll
 C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\bin\Debug\netcoreapp3.1\Discord.Addons.Interactive.dll
+C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\bin\Debug\netcoreapp3.1\Kitsu.dll
 C:\Users\Admin\source\repos\Bibs_Discord.NET\Bibs_Discord.NET\obj\Debug\netcoreapp3.1\Bibs_Discord_dotNET.csproj.CoreCompileInputs.cache

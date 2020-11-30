@@ -43,5 +43,23 @@ namespace Bibs_Discord_dotNET.Commons
             var message = await channel.SendMessageAsync(embed: embed);
             return message;
         }
+        public static async Task<IMessage> SendLogAsync(this ITextChannel channel, string title, string description)
+        {
+            var embed = new EmbedBuilder()
+                .WithColor(new Color(33, 176, 252))
+                .WithDescription(description)
+                .WithAuthor(author =>
+                {
+                    author
+                    .WithIconUrl("https://stellaris.paradoxwikis.com/images/4/48/Normal_sit_log.png")
+                    .WithName(title);
+                }
+                )
+                .WithCurrentTimestamp()
+                .Build();
+
+            var message = await channel.SendMessageAsync(embed: embed);
+            return message;
+        }
     }
 }

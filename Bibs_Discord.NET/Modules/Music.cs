@@ -11,6 +11,7 @@ using Victoria.Enums;
 
 namespace Bibs_Discord.NET.Modules
 {
+    [RequireContext(ContextType.Guild, ErrorMessage = "You need to be in a discord server to use this commands!")]
     public class Music : ModuleBase<SocketCommandContext>
     {
         private readonly LavaNode _lavaNode;

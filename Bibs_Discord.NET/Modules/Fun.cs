@@ -17,12 +17,9 @@ using System.Threading.Tasks;
 
 namespace Bibs_Discord.NET.Modules
 {
-    [RequireChannel("bot_spam")]
     public class Fun : ModuleBase<SocketCommandContext>
     {
         private readonly ILogger<Fun> _logger;
-
-        public static bool NNN = false;
 
         public Fun(ILogger<Fun> logger)
         {
@@ -31,7 +28,7 @@ namespace Bibs_Discord.NET.Modules
         }
         [Command("birthday", RunMode = RunMode.Async)]
         [Summary("Posts the rats birthday mixtape lyrics")]
-        [Cooldown(20)]
+        [Cooldown(5)]
         public async Task Birthday([Remainder] string user = null)
         {
             if (user == null)
@@ -63,7 +60,7 @@ namespace Bibs_Discord.NET.Modules
         }
         [Command("joke", RunMode = RunMode.Async)]
         [Summary("Get a random dad joke")]
-        [Cooldown(10)]
+        [Cooldown(5)]
         public async Task Joke()
         {
             var client = new HttpClient();
@@ -85,7 +82,7 @@ namespace Bibs_Discord.NET.Modules
         [Command("meme", RunMode = RunMode.Async)]
         [Alias("reddit")]
         [Summary("Get a random post from a subreddit, default is r/memes")]
-        [Cooldown(20)]
+        [Cooldown(5)]
         public async Task Meme(string subreddit = null)
         {
             var client = new HttpClient();
@@ -117,7 +114,7 @@ namespace Bibs_Discord.NET.Modules
         [Command("md5", RunMode = RunMode.Async)]
         [Alias("hash")]
         [Summary("Turn user input into an MD5 hash")]
-        [Cooldown(20)]
+        [Cooldown(5)]
         public async Task MD5([Remainder] string input)
         {
             StringBuilder hash = new StringBuilder();
@@ -133,7 +130,7 @@ namespace Bibs_Discord.NET.Modules
         }
         [Command("mods")]
         [Summary("Promote Ribs's stellaris mods")]
-        [Cooldown(20)]
+        [Cooldown(5)]
         public async Task Mods()
         {
             var builder = new EmbedBuilder()
@@ -148,51 +145,17 @@ namespace Bibs_Discord.NET.Modules
             await Context.Channel.TriggerTypingAsync();
             await Context.Channel.SendMessageAsync(null, false, embed);
         }
-        [Command("nukes")]
-        [Summary("Gives you a random 6 digit number")]
-        [RequireOwner]
-        public async Task Nukes()
-        {
-            Random rnd = new Random();
-            int codes = rnd.Next(1, 334763);
-
-            if (NNN == true)
-            {
-                await Context.Channel.TriggerTypingAsync();
-                await ReplyAsync("You can't use this now, No Nut November is in effect!");
-                return;
-            }
-            else
-            {
-                if (!(Context.Channel as ITextChannel).IsNsfw)
-                {
-                    await ReplyAsync("You can't leak military secrets here!");
-                    return;
-                }
-
-                var builder = new EmbedBuilder()
-                   .WithColor(new Color(33, 176, 252))
-                   .WithTitle($"Your nuke code is {codes}")
-                   .WithUrl("https://nhentai.net/g/" + codes.ToString());
-                await Context.Channel.TriggerTypingAsync();
-                await ReplyAsync(embed: builder.Build());
-            }
-        }
-        [Command("nnn")]
-        [Summary("Activate No Nut November")]
-        [RequireOwner]
-        public async Task NoNutNovember()
-        {
-            NNN = !NNN;
-            await Context.Channel.TriggerTypingAsync();
-            await ReplyAsync($"Warning: No Nut November is now: {NNN.ToString()}!");
-
-        }
         [Command("rr", RunMode = RunMode.Async)]
         [Summary("Play a game of russian roulette")]
-        [Cooldown(20)]
+        [Cooldown(5)]
         public async Task RR()
         {
+            if ((Context.Channel as IDMChannel) != null)
+            {
+                await Context.Channel.SendErrorAsync("Russian Roulette", "This command can only be used in a server, where the stakes are present.");
+                return;
+            }
+
             var role = Context.Guild.Roles.FirstOrDefault(x => x.Name == "Muted"); // Fetch the role you're using to mute someone
             if (role == null) // Create the role if there is no muted role yet
             {
@@ -213,33 +176,40 @@ namespace Bibs_Discord.NET.Modules
                             speak: PermValue.Deny));
                 }
             }
-
-            String reason = "";
-            int bullet = new Random().Next(0, 5);
-            if (bullet == 1)
+            try
             {
-                var channel = await Context.User.GetOrCreateDMChannelAsync();
-                await channel.SendMessageAsync(reason == null ? $"You've been muted in {Context.Guild.Name} for 2 minutes. You've died in a game of Russian Roulette." : $"You've been muted in {Context.Guild.Name} for 2 minutes. You've died in a game of Russian Roulette. Try again if you dare.");
-                var user = (Context.User as SocketGuildUser);
-                await Task.Delay(2000);
-                await user.AddRoleAsync(role);
-                await Context.Channel.TriggerTypingAsync();
-                await ReplyAsync(reason == null ? $"The chamber was loaded! {Context.User.Username} shot themself in the head!" : $"The chamber was loaded! {Context.User.Username} shot themself in the head!");
+                String reason = "";
+                int bullet = new Random().Next(0, 5);
+                if (bullet == 1)
+                {
+                    var channel = await Context.User.GetOrCreateDMChannelAsync();
+                    await channel.SendMessageAsync(reason == null ? $"You've been muted in {Context.Guild.Name} for 2 minutes. You've died in a game of Russian Roulette." : $"You've been muted in {Context.Guild.Name} for 2 minutes. You've died in a game of Russian Roulette. Try again if you dare.");
+                    var user = (Context.User as SocketGuildUser);
+                    await Task.Delay(2000);
+                    await user.AddRoleAsync(role);
+                    await Context.Channel.TriggerTypingAsync();
+                    await ReplyAsync(reason == null ? $"The chamber was loaded! {Context.User.Username} shot themself in the head!" : $"The chamber was loaded! {Context.User.Username} shot themself in the head!");
 
-                await Task.Delay(120000);
-                await user.RemoveRoleAsync(role);
-                await channel.SendMessageAsync($"You've been revived in {Context.Guild.Name}");
+                    await Task.Delay(120000);
+                    await user.RemoveRoleAsync(role);
+                    await channel.SendMessageAsync($"You've been revived in {Context.Guild.Name}");
+                }
+                else
+                {
+                    await Context.Channel.TriggerTypingAsync();
+                    await ReplyAsync(reason == null ? $"The chamber was empty! {Context.User.Username} has survived!" : $"The chamber was empty! {Context.User.Username} has survived!");
+                }
             }
-            else
+            catch (Exception e)
             {
-                await Context.Channel.TriggerTypingAsync();
-                await ReplyAsync(reason == null ? $"The chamber was empty! {Context.User.Username} has survived!" : $"The chamber was empty! {Context.User.Username} has survived!");
+                await Context.Channel.SendErrorAsync("Russian Roulette", $"Something went wrong: User not found.");
             }
+            
 
         }
         [Command("rps")]
         [Summary("Play a game of rock paper scissors")]
-        [Cooldown(20)]
+        [Cooldown(5)]
         public async Task RockRPS(string choice)
         {
             if (choice.Contains("paper") || choice.Contains("scissors") || choice.Contains("rock"))

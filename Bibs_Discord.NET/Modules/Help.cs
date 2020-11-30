@@ -26,18 +26,34 @@ namespace Bibs_Discord.NET.Modules
         public async Task HelpAsync()
         {
             List<string> Pages = new List<string>();
-            string prefix = await _servers.GetGuildPrefix((Context.Channel as SocketGuildChannel).Guild.Id) ?? "!";
-
-            foreach (var module in _service.Modules)
+            string prefix ="!";
+            if ((Context.Channel as IDMChannel) != null)
             {
-                string page = $"**{module.Name}**\n\n";
-                foreach (var command in module.Commands)
+                foreach (var module in _service.Modules)
                 {
-                    page += $"`{prefix}{command.Aliases.First()}` - {command.Summary ?? "No description found"}\n"; 
+                    string page = $"**{module.Name}**\n\n";
+                    foreach (var command in module.Commands)
+                    {
+                        page += $"`{prefix}{command.Aliases.First()}` - {command.Summary ?? "No description found"}\n";
+                    }
+                    Pages.Add(page);
                 }
-                Pages.Add(page);
+                await PagedReplyAsync(Pages);
             }
-            await PagedReplyAsync(Pages);
+            else 
+            {
+                prefix = await _servers.GetGuildPrefix((Context.Channel as SocketGuildChannel).Guild.Id);
+                foreach (var module in _service.Modules)
+                {
+                    string page = $"**{module.Name}**\n\n";
+                    foreach (var command in module.Commands)
+                    {
+                        page += $"`{prefix}{command.Aliases.First()}` - {command.Summary ?? "No description found"}\n";
+                    }
+                    Pages.Add(page);
+                }
+                await PagedReplyAsync(Pages);
+            }
         }
         [Command("help")]
         public async Task HelpAsync(string command)

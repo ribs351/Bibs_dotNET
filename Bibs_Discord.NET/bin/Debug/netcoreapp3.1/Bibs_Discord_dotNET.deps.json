@@ -15,6 +15,7 @@
           "Discord.Net.Commands": "2.2.0",
           "Discord.Net.Core": "2.2.0",
           "Discord.Net.WebSocket": "2.2.0",
+          "Kitsu": "1.4.2",
           "Microsoft.Extensions.Configuration": "3.1.9",
           "Microsoft.Extensions.DependencyInjection": "3.1.9",
           "Microsoft.Extensions.Hosting": "3.1.9",
@@ -117,6 +118,17 @@
           "lib/netstandard2.1/Discord.Net.WebSocket.dll": {
             "assemblyVersion": "2.2.0.0",
             "fileVersion": "2.2.0.0"
+          }
+        }
+      },
+      "Kitsu/1.4.2": {
+        "dependencies": {
+          "Newtonsoft.Json": "12.0.2"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Kitsu.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
           }
         }
       },
@@ -775,6 +787,13 @@
       "sha512": "sha512-jZb/Ae5w0K0dnGQETcSJu0qA3j5vgG7Dtl27pAkiug90omFs5SB20WNReo25WoJuidPAa6gmaBEWm5RPaBghXw==",
       "path": "discord.net.websocket/2.2.0",
       "hashPath": "discord.net.websocket.2.2.0.nupkg.sha512"
+    },
+    "Kitsu/1.4.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-lzb2ZSD2FSReOzOESJtyhEVfKwJr1HsZFSIQW4aPsBRwLXUt4BoBC2erScHotw4QE/hfSpWeNe2fiL4vl89Ykg==",
+      "path": "kitsu/1.4.2",
+      "hashPath": "kitsu.1.4.2.nupkg.sha512"
     },
     "Microsoft.Bcl.AsyncInterfaces/1.1.1": {
       "type": "package",

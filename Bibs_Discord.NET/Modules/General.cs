@@ -9,25 +9,22 @@ using System;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Net.Http;
-using Newtonsoft.Json;
 
 namespace Bibs_Discord.NET.Modules
 {
     public class General : ModuleBase<SocketCommandContext>
     {
         private readonly ILogger<General> _logger;
-        private readonly RanksHelper _ranksHelper;
+        private readonly ServerHelper _serverHelper;
 
-        public General(ILogger<General> logger, RanksHelper ranksHelper)
+        public General(ILogger<General> logger, ServerHelper serverHelper)
         {
             _logger = logger;
-            _ranksHelper = ranksHelper;
+            _serverHelper = serverHelper;
         }
 
         [Command("ping")]
         [Summary("Check if Bibs is alive or not")]
-        [Cooldown(5)]
 
         public async Task Ping()
         {
@@ -45,37 +42,13 @@ namespace Bibs_Discord.NET.Modules
 
         [Command("owo")]
         [Summary("OwO")]
-        [Cooldown(20)]
+        [Cooldown(5)]
         public async Task OWO([Remainder]string phrase)
         {
             String str = phrase.Replace("r", "w");
             str = str.Replace("l", "w");
             await ReplyAsync($"*" + str + " uwu*");
         }
-        [Command("neko", RunMode = RunMode.Async)]
-        [Summary("Get a random catgirl")]
-        [RequireNsfw]
-        [Cooldown(60)]
-        public async Task CatGirl()
-        {
-            var client = new HttpClient();
-            var result = await client.GetStringAsync("https://nekos.moe/api/v1/random/image?count=1&nsfw=false");
-            if (result == null)
-            {
-                await Context.Channel.SendErrorAsync("Neko API", "Something went wrong with the Neko API!");
-                return;
-            }
-            var neko = JsonConvert.DeserializeObject<dynamic>(result);
-
-            var builder = new EmbedBuilder()
-               .WithColor(new Color(33, 176, 252))
-               .WithTitle("Neko")
-               .WithUrl($"https://nekos.moe/image/{neko.images[0].id.ToString()}")
-               .WithImageUrl($"https://nekos.moe/image/{neko.images[0].id.ToString()}");
-            await Context.Channel.TriggerTypingAsync();
-            await ReplyAsync(embed: builder.Build());
-        }
-
         [Command("avatar")]
         [Summary("Get a user's avatar")]
         [Cooldown(5)]
@@ -99,6 +72,27 @@ namespace Bibs_Discord.NET.Modules
         [Cooldown(5)]
         public async Task Info([Remainder] SocketGuildUser user = null)
         {
+            if ((Context.Channel as IDMChannel) != null)
+            {
+                var builder = new EmbedBuilder()
+                .WithThumbnailUrl(Context.User.GetAvatarUrl() ?? Context.User.GetDefaultAvatarUrl())
+                .WithTitle("Your Files")
+                .WithDescription("Here's what I've found out about you: ")
+                .WithColor(new Color(33, 176, 252))
+                .AddField("User ID", $"```fix\n{Context.User.Id}```", true)
+                .AddField("Created at", $"```fix\n{Context.User.CreatedAt.ToString("dd/MM/yyyy")}```", true)
+                .WithCurrentTimestamp()
+                .WithFooter(
+                x =>
+                {
+                    x.WithText($"Info | Requested by {Context.User.Username}");
+                    x.WithIconUrl(Context.User.GetAvatarUrl());
+                }); 
+                var embed = builder.Build();
+                await Context.Channel.TriggerTypingAsync();
+                await Context.Channel.SendMessageAsync(null, false, embed);
+                return;
+            }
             if (user == null)
 
             {
@@ -107,14 +101,21 @@ namespace Bibs_Discord.NET.Modules
                 .WithTitle("Your Files")
                 .WithDescription("Here's what I've found out about you: ")
                 .WithColor(new Color(33, 176, 252))
-                .AddField("User ID", Context.User.Id, true)
-                .AddField("Created at", Context.User.CreatedAt.ToString("dd/MM/yyyy"), true)
-                .AddField("Join date", (Context.User as SocketGuildUser).JoinedAt.Value.ToString("dd/MM/yyyy"), true)
+                .AddField("User ID", $"```fix\n{Context.User.Id}```", true)
+                .AddField("Created at", $"```fix\n{Context.User.CreatedAt.ToString("dd/MM/yyyy")}```", true)
+                .AddField("Join date", $"```fix\n{(Context.User as SocketGuildUser).JoinedAt.Value.ToString("dd/MM/yyyy")}```", true)
                 .AddField("Roles", string.Join(" ", (Context.User as SocketGuildUser).Roles.Select(x => x.Mention)))
-                .WithCurrentTimestamp();
+                .WithCurrentTimestamp()
+                .WithFooter(
+                x =>
+                {
+                    x.WithText($"Info | Requested by {Context.User.Username}");
+                    x.WithIconUrl(Context.User.GetAvatarUrl());
+                });
                 var embed = builder.Build();
                 await Context.Channel.TriggerTypingAsync();
                 await Context.Channel.SendMessageAsync(null, false, embed);
+                return;
             }
             else
             {
@@ -124,18 +125,26 @@ namespace Bibs_Discord.NET.Modules
                .WithDescription($"{user.Username}'s infomation is as follows: ")
                .WithColor(new Color(33, 176, 252))
                .AddField("User ID", user.Id, true)
-               .AddField("Created at", user.CreatedAt.ToString("dd/MM/yyyy"), true)
-               .AddField("Join date", user.JoinedAt.Value.ToString("dd/MM/yyyy"), true)
+               .AddField("Created at", $"```fix\n{user.CreatedAt.ToString("dd/MM/yyyy")}```", true)
+               .AddField("Join date", $"```fix\n{user.JoinedAt.Value.ToString("dd/MM/yyyy")}```", true)
                .AddField("Roles", string.Join(" ", user.Roles.Select(x => x.Mention)))
-               .WithCurrentTimestamp();
+               .WithCurrentTimestamp()
+               .WithFooter(
+                x =>
+                {
+                    x.WithText($"Info | Requested by {Context.User.Username}");
+                    x.WithIconUrl(Context.User.GetAvatarUrl());
+                });
                 var embed = builder.Build();
                 await Context.Channel.TriggerTypingAsync();
                 await Context.Channel.SendMessageAsync(null, false, embed);
+                return;
             }
 
         }
         [Command("serverinfo")]
         [Summary("Get server info")]
+        [RequireContext(ContextType.Guild, ErrorMessage = "You need to be in a discord server to use this commands!")]
         [Cooldown(5)]
         public async Task Server()
         {
@@ -144,9 +153,16 @@ namespace Bibs_Discord.NET.Modules
                 .WithTitle($"{Context.Guild.Name}'s Infomation")
                 .WithDescription("This is the server we're in:")
                 .WithColor(new Color(33, 176, 252))
-                .AddField("Created at: ", Context.Guild.CreatedAt.ToString("dd/MM/yyyy"))
-                .AddField("Member Count ", (Context.Guild as SocketGuild).MemberCount + " member(s)")
-                .AddField("Online users: ", (Context.Guild as SocketGuild).Users.Where(x => x.Status != UserStatus.Offline).Count());
+                .AddField("Created at: ", $"```fix\n{Context.Guild.CreatedAt.ToString("dd/MM/yyyy")}```", true)
+                .AddField("Member Count ", $"```fix\n{(Context.Guild as SocketGuild).MemberCount} member(s)```", true)
+                .AddField("Online users: ", $"```fix\n{(Context.Guild as SocketGuild).Users.Where(x => x.Status != UserStatus.Offline).Count()}```", true)
+                .WithCurrentTimestamp()
+                .WithFooter(
+                x =>
+                {
+                    x.WithText($"Server info | Requested by {Context.User.Username}");
+                    x.WithIconUrl(Context.User.GetAvatarUrl());
+                });
 
             var embed = builder.Build();
             await Context.Channel.TriggerTypingAsync();
@@ -154,11 +170,12 @@ namespace Bibs_Discord.NET.Modules
         }
         [Command("getrank", RunMode = RunMode.Async)]
         [Summary("Assign a rank to yourself")]
+        [RequireContext(ContextType.Guild, ErrorMessage = "You need to be in a discord server to use this commands!")]
         [RequireBotPermission(GuildPermission.ManageRoles)]
         public async Task Rank([Remainder] string identifier)
         {
             await Context.Channel.TriggerTypingAsync();
-            var ranks = await _ranksHelper.GetRanksAsync(Context.Guild);
+            var ranks = await _serverHelper.GetRanksAsync(Context.Guild);
 
             IRole role;
 
@@ -169,7 +186,7 @@ namespace Bibs_Discord.NET.Modules
                 if (roleById == null)
                 {
                     await Context.Channel.TriggerTypingAsync();
-                    await Context.Channel.SendSuccessAsync("Ranks", "That role doesn't exist!");
+                    await Context.Channel.SendErrorAsync("Ranks", "That role doesn't exist!");
                     return;
                 }
 
@@ -181,17 +198,17 @@ namespace Bibs_Discord.NET.Modules
                 if (roleByName == null)
                 {
                     await Context.Channel.TriggerTypingAsync();
-                    await Context.Channel.SendSuccessAsync("Ranks", "That role doesn't exist!");
+                    await Context.Channel.SendErrorAsync("Ranks", "That role doesn't exist!");
                     return;
                 }
 
                 role = roleByName;
             }
 
-            if (ranks.Any(x => x.Id != role.Id))
+            if (!ranks.Any(x => x.Id == role.Id))
             {
                 await Context.Channel.TriggerTypingAsync();
-                await Context.Channel.SendSuccessAsync("Ranks", "That rank doesn't exist!");
+                await Context.Channel.SendErrorAsync("Ranks", "That rank doesn't exist!");
                 return;
             }
 
@@ -206,6 +223,7 @@ namespace Bibs_Discord.NET.Modules
             await (Context.User as SocketGuildUser).AddRoleAsync(role);
             await Context.Channel.TriggerTypingAsync();
             await Context.Channel.SendSuccessAsync("Ranks", $"Succesfully added the rank {role.Mention} to you.");
+            return;
 
         }
     }

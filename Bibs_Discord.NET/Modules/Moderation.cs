@@ -18,20 +18,18 @@ namespace Bibs_Discord.NET.Modules
 {
     public class Moderation : ModuleBase<SocketCommandContext>
     {
+        private readonly ServerHelper _serverHelper;
         private readonly ILogger<Moderation> _logger;
-        private readonly RanksHelper _ranksHelper;
-        private readonly AutoRolesHelper _autoRolesHelper;
         private readonly Servers _servers;
         private readonly Ranks _ranks;
         private readonly AutoRoles _autoRoles;
 
         private readonly GuildPermissions mutedPerms = new GuildPermissions(sendMessages: false);
 
-        public Moderation(ILogger<Moderation> logger, RanksHelper ranksHelper, Servers servers, Ranks ranks, AutoRolesHelper autoRolesHelper, AutoRoles autoRoles)
+        public Moderation(ServerHelper serverHelper, ILogger<Moderation> logger, Servers servers, Ranks ranks, AutoRoles autoRoles)
         {
+            _serverHelper = serverHelper;
             _logger = logger;
-            _ranksHelper = ranksHelper;
-            _autoRolesHelper = autoRolesHelper;
             _servers = servers;
             _ranks = ranks;
             _autoRoles = autoRoles;
@@ -39,12 +37,25 @@ namespace Bibs_Discord.NET.Modules
 
         [Command("say"), Alias("s")]
         [Summary("Make Bibs say what you want")]
-        [RequireOwner]
         public async Task Say([Remainder] string text)
         {
+            if ((text.ToString().IndexOf("@") >= 0) == true)
+            {
+                await Context.Channel.TriggerTypingAsync();
+                await Context.Channel.SendMessageAsync("I won't say a message with that symbol.");
+                return;
+            }
+            if ((Context.Channel as IDMChannel) != null)
+            {
+                await Context.Channel.TriggerTypingAsync();
+                await ReplyAsync(text);
+                _logger.LogInformation($"{Context.User.Username}#{Context.User.Discriminator} used the say command with the message '{text}'!");
+                return;
+            }
             await Context.Message.DeleteAsync();
             await Context.Channel.TriggerTypingAsync();
             await ReplyAsync(text);
+            _logger.LogInformation($"{Context.User.Username}#{Context.User.Discriminator} used the say command with the message '{text}'!");
         }
         [Command("mute", RunMode = RunMode.Async)]
         [RequireUserPermission(GuildPermission.ManageMessages, ErrorMessage = "You don't have permission to do that!")]
@@ -107,6 +118,7 @@ namespace Bibs_Discord.NET.Modules
             if (user.Roles.Any(x => x.Name == "Muted")) // Check if the user already has the muted role
             {
                 await user.RemoveRoleAsync(role);
+                await _serverHelper.SendLogAsync(Context.Guild, "Situation Log", $"{Context.User.Mention} umuted {user.Mention}!");
 
                 var builder = new EmbedBuilder()
                  .WithThumbnailUrl(Context.Guild.IconUrl)
@@ -121,6 +133,7 @@ namespace Bibs_Discord.NET.Modules
             }
 
             await user.AddRoleAsync(role); // Add the role to the user
+            await _serverHelper.SendLogAsync(Context.Guild, "Situation Log", $"{Context.User.Mention} muted {user.Mention}!");
             EmbedBuilder embedBuilder = new EmbedBuilder()
                          .WithThumbnailUrl(Context.Guild.IconUrl)
                          .WithTitle("Muted")
@@ -149,10 +162,11 @@ namespace Bibs_Discord.NET.Modules
             var embed = builder.Build();
             await Context.Channel.TriggerTypingAsync();
             await Context.Channel.SendMessageAsync(null, false, embed);
+            await _serverHelper.SendLogAsync(Context.Guild, "Situation Log", $"{Context.User.Mention} changed {user.Username}'s nickname to {name}!");
         }
 
         [Command("prune")]
-        [Alias("purge", "delet", "kill")]
+        [Alias("purge", "delet")]
         [Summary("Bulk delete messages")]
         [RequireUserPermission(GuildPermission.ManageMessages, ErrorMessage = "You don't have permission to do that!")]
         [RequireBotPermission(GuildPermission.ManageMessages)]
@@ -172,7 +186,7 @@ namespace Bibs_Discord.NET.Modules
             await Task.Delay(2500);
             await message.DeleteAsync();
 
-            _logger.LogInformation($"{Context.User.Username} executed the purge command!");
+            await _serverHelper.SendLogAsync(Context.Guild, "Situation Log", $"{Context.User.Mention} bulk deleted {messages.Count()} messages(s)!");
 
         }
         [Command("kick")]
@@ -184,6 +198,7 @@ namespace Bibs_Discord.NET.Modules
             await Context.Channel.TriggerTypingAsync();
             await user.KickAsync();
             await Context.Channel.SendSuccessAsync("Kicked", $"{user.Mention} was kicked by {Context.User.Mention}!");
+            await _serverHelper.SendLogAsync(Context.Guild, "Banned", $"{user.Mention} was kicked by {Context.User.Mention}!");
         }
         [Command("ban")]
         [Summary("Ban a user")]
@@ -194,14 +209,16 @@ namespace Bibs_Discord.NET.Modules
             await Context.Channel.TriggerTypingAsync();
             await user.BanAsync();
             await Context.Channel.SendSuccessAsync("Banned", $"{user.Mention} was banned by {Context.User.Mention}!");
-            
+            await _serverHelper.SendLogAsync(Context.Guild, "Situation Log", $"{user.Mention} was banned by {Context.User.Mention}!");
         }
+
+
         [Command("prefix", RunMode = RunMode.Async)]
         [Summary("Set the bot's command prefix")]
         [RequireUserPermission(Discord.GuildPermission.Administrator, ErrorMessage = "You don't have permission to do that!")]
         public async Task Prefix(string prefix = null)
         {
-            if(prefix == null)
+            if (prefix == null)
             {
                 var guildprefix = await _servers.GetGuildPrefix(Context.Guild.Id) ?? "!";
                 await Context.Channel.TriggerTypingAsync();
@@ -221,13 +238,14 @@ namespace Bibs_Discord.NET.Modules
             await Context.Channel.TriggerTypingAsync();
             await ReplyAsync($"The prefix has been adjusted to `{prefix}`");
 
-            _logger.LogInformation($"{Context.User.Username} executed the math command!");
+            await _serverHelper.SendLogAsync(Context.Guild, "Situation Log", $"{Context.User.Mention} modified the prefix to `{prefix}`.");
         }
         [Command("listranks", RunMode = RunMode.Async)]
         [Summary("Lists all available ranks")]
+        [RequireContext(ContextType.Guild, ErrorMessage = "You need to be in a discord server to use this commands!")]
         public async Task Ranks()
         {
-            var ranks = await _ranksHelper.GetRanksAsync(Context.Guild);
+            var ranks = await _serverHelper.GetRanksAsync(Context.Guild);
             if (ranks.Count == 0)
             {
                 await Context.Channel.TriggerTypingAsync();
@@ -260,7 +278,7 @@ namespace Bibs_Discord.NET.Modules
         public async Task AddRank([Remainder] string name)
         {
             await Context.Channel.TriggerTypingAsync();
-            var ranks = await _ranksHelper.GetRanksAsync(Context.Guild);
+            var ranks = await _serverHelper.GetRanksAsync(Context.Guild);
 
             var role = Context.Guild.Roles.FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.CurrentCultureIgnoreCase));
             if (role == null)
@@ -287,6 +305,7 @@ namespace Bibs_Discord.NET.Modules
             await _ranks.AddRankAsync(Context.Guild.Id, role.Id);
             await Context.Channel.TriggerTypingAsync();
             await Context.Channel.SendSuccessAsync("Ranks", $"The role {role.Mention} has been added to the ranks!");
+            await _serverHelper.SendLogAsync(Context.Guild, "Situation Log", $"{Context.User.Mention} added {role.Mention} to the ranks!");
         }
         [Command("delrank", RunMode = RunMode.Async)]
         [Summary("Removes a rank from the list of ranks")]
@@ -295,7 +314,7 @@ namespace Bibs_Discord.NET.Modules
         public async Task DelRank([Remainder] string name)
         {
             await Context.Channel.TriggerTypingAsync();
-            var ranks = await _ranksHelper.GetRanksAsync(Context.Guild);
+            var ranks = await _serverHelper.GetRanksAsync(Context.Guild);
 
             var role = Context.Guild.Roles.FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.CurrentCultureIgnoreCase));
             if (role == null)
@@ -305,23 +324,24 @@ namespace Bibs_Discord.NET.Modules
                 return;
             }
 
-            if (ranks.Any(x => x.Id != role.Id))
+            if (!ranks.Any(x => x.Id == role.Id))
             {
                 await Context.Channel.TriggerTypingAsync();
                 await Context.Channel.SendErrorAsync("Ranks", "That role is not a rank yet!");
                 return;
             }
-
             await _ranks.RemoveRankAsync(Context.Guild.Id, role.Id);
             await Context.Channel.TriggerTypingAsync();
             await Context.Channel.SendSuccessAsync("Ranks", $"The role {role.Mention} has been removed from the ranks");
+            await _serverHelper.SendLogAsync(Context.Guild, "Situation Log", $"{Context.User.Mention} removed {role.Mention} from the ranks!");
+            return;
         }
         [Command("autoroles", RunMode = RunMode.Async)]
         [Summary("Lists all available autoroles")]
         [RequireUserPermission(GuildPermission.Administrator, ErrorMessage = "You don't have permission to do that!")]
         public async Task AutoRoles()
         {
-            var autoRoles = await _autoRolesHelper.GetAutoRolesAsync(Context.Guild);
+            var autoRoles = await _serverHelper.GetAutoRolesAsync(Context.Guild);
             if (autoRoles.Count == 0)
             {;
                 await Context.Channel.TriggerTypingAsync();
@@ -354,7 +374,7 @@ namespace Bibs_Discord.NET.Modules
         public async Task AddAutoRole([Remainder] string name)
         {
             await Context.Channel.TriggerTypingAsync();
-            var autoRoles = await _autoRolesHelper.GetAutoRolesAsync(Context.Guild);
+            var autoRoles = await _serverHelper.GetAutoRolesAsync(Context.Guild);
 
             var role = Context.Guild.Roles.FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.CurrentCultureIgnoreCase));
             if (role == null)
@@ -377,6 +397,7 @@ namespace Bibs_Discord.NET.Modules
 
             await _autoRoles.AddAutoRoleAsync(Context.Guild.Id, role.Id);
             await Context.Channel.SendSuccessAsync("Auto Roles", $"The role {role.Mention} has been added to the autoroles!");
+            await _serverHelper.SendLogAsync(Context.Guild, "Situation Log", $"{Context.User.Mention} added {role.Mention} to the autoroles!");
         }
 
 
@@ -387,7 +408,7 @@ namespace Bibs_Discord.NET.Modules
         public async Task DelAutoRole([Remainder] string name)
         {
             await Context.Channel.TriggerTypingAsync();
-            var autoRoles = await _autoRolesHelper.GetAutoRolesAsync(Context.Guild);
+            var autoRoles = await _serverHelper.GetAutoRolesAsync(Context.Guild);
 
             var role = Context.Guild.Roles.FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.CurrentCultureIgnoreCase));
             if (role == null)
@@ -400,6 +421,7 @@ namespace Bibs_Discord.NET.Modules
             {
                 await _autoRoles.RemoveAutoRoleAsync(Context.Guild.Id, role.Id);
                 await Context.Channel.SendSuccessAsync("Auto Roles", $"The role {role.Mention} has been removed from the autoroles!");
+                await _serverHelper.SendLogAsync(Context.Guild, "Situation Log", $"{Context.User.Mention} removed {role.Mention} from the autoroles!");
 
                 return;
             }
@@ -457,6 +479,7 @@ namespace Bibs_Discord.NET.Modules
 
                 await _servers.ModifyWelcomeAsync(Context.Guild.Id, parsedId);
                 await Context.Channel.SendSuccessAsync("Welcome module", $"Successfully modified the welcome channel to {parsedChannel.Mention}.");
+                await _serverHelper.SendLogAsync(Context.Guild, "Situation Log", $"{Context.User.Mention} modified the welcome channel to {parsedChannel.Mention}!");
                 return;
             }
 
@@ -466,6 +489,7 @@ namespace Bibs_Discord.NET.Modules
                 {
                     await _servers.ClearBackgroundAsync(Context.Guild.Id);
                     await Context.Channel.SendSuccessAsync("Welcome module", "Successfully cleared the background for this server.");
+                    await _serverHelper.SendLogAsync(Context.Guild, "Situation Log", $"{Context.User.Mention} cleared the welcome channel!");
                     return;
                 }
 
@@ -491,6 +515,65 @@ namespace Bibs_Discord.NET.Modules
             await ((Context.Channel as SocketTextChannel).ModifyAsync(x => x.SlowModeInterval = interval));
             await Context.Channel.SendSuccessAsync("Slowmode", $"Channel's slowmode interval has been adjusted to {interval} seconds!");
         }
+
+        [Command("logs")]
+        [Summary("Setup the Situation Log")]
+        [RequireUserPermission(GuildPermission.Administrator, ErrorMessage = "You don't have permission to do that!")]
+        public async Task Logs(string value = null)
+        {
+            await Context.Channel.TriggerTypingAsync();
+            if (value == null)
+            {
+                var fetchedChannelId = await _servers.GetLogsAsync(Context.Guild.Id);
+                if (fetchedChannelId == 0)
+                {
+                    await Context.Channel.SendErrorAsync("Situation Log", "There has not been set a logs channel yet!");
+                    return;
+                }
+
+                var fetchedChannel = Context.Guild.GetTextChannel(fetchedChannelId);
+                if (fetchedChannel == null)
+                {
+                    await Context.Channel.SendErrorAsync("Situation Log", "There has not been set a logs channel yet!");
+                    await _servers.ClearLogsAsync(Context.Guild.Id);
+                    return;
+                }
+
+                await Context.Channel.SendSuccessAsync("Situation Log", $"The channel used for logs is set to {fetchedChannel.Mention}.");
+
+                return;
+            }
+
+            if (value != "clear")
+            {
+                if (!MentionUtils.TryParseChannel(value, out ulong parsedId))
+                {
+                    await Context.Channel.SendErrorAsync("Situation Log", "Please pass in a valid channel!");
+                    return;
+                }
+
+                var parsedChannel = Context.Guild.GetTextChannel(parsedId);
+                if (parsedChannel == null)
+                {
+                    await Context.Channel.SendErrorAsync("Situation Log", "Please pass in a valid channel!");
+                    return;
+                }
+
+                await _servers.ModifyLogsAsync(Context.Guild.Id, parsedId);
+                await Context.Channel.SendSuccessAsync("Situation Log", $"Successfully modified the logs channel to {parsedChannel.Mention}.");
+                return;
+            }
+
+
+            if (value == "clear")
+            {
+                await _servers.ClearLogsAsync(Context.Guild.Id);
+                await Context.Channel.SendSuccessAsync("Situation Log", "Successfully cleared the logs channel.");
+                return;
+            }
+            await Context.Channel.SendErrorAsync("Situation Log", "You did not use this command properly!");
+        }
+
         [Command("stats")]
         [Summary("Shares the bot summary here")]
         public async Task BotMainStats()
@@ -563,6 +646,31 @@ namespace Bibs_Discord.NET.Modules
                 });
             // Sends message and deletes
             await ReplyAsync(string.Empty, false, builder.Build());
+        }
+        [Command("leaveguild")]
+        [Summary("Forces the bot to leave a guild")]
+        [RequireOwner]
+        public async Task LeaveGuild(ulong guildId)
+        {
+            SocketGuild guild = Context.Client.GetGuild(guildId);
+
+            //Make sure the bot is in a guild with the provided guildId.
+            if (guild != null)
+            {
+                await Context.Channel.SendMessageAsync("... It was never personal");
+                await guild.LeaveAsync();
+            }    
+            else
+                await Context.Channel.SendMessageAsync($"The bot isn't in a guild with the id of {guildId}!");
+        }
+        [Command("kill")]
+        [Summary("Stops Bibs to adapt to any new changes in code.")]
+        [RequireOwner]
+        public async Task kill()
+        {
+            await Context.Channel.TriggerTypingAsync();
+            await ReplyAsync("... It was never personal");
+            Environment.Exit(0);
         }
     }
 }

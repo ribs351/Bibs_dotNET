@@ -10,7 +10,7 @@ namespace Bibs_Discord.NET.Modules
 
         [Command("answer")]
         [Summary("Answers a yes no question, much like the magic eightball")]
-        [Cooldown(20)]
+        [Cooldown(5)]
         public async Task AnswerQuestion([Remainder] string question)
         {
             Random random = new Random();
