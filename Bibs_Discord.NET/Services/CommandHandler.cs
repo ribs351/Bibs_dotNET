@@ -92,7 +92,7 @@ namespace Bibs_Discord_dotNET.Services
 
         private async Task OnReadyAsync()
         {
-            _logger.LogCritical("Battle Control online");
+            _logger.LogCritical("Battle Control Online");
             if (!_lavaNode.IsConnected)
             {
                 await _lavaNode.ConnectAsync();
