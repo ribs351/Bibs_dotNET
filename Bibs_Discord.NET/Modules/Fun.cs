@@ -26,6 +26,39 @@ namespace Bibs_Discord.NET.Modules
             _logger = logger;
 
         }
+        public async Task RRMute(SocketGuildUser user)
+        {
+            foreach (var channel in Context.Guild.Channels) // Loop over all channels
+            {
+                if (!channel.GetPermissionOverwrite(user).HasValue ||                              // Check if the channel has the correct permissions for the muted user                           
+                    channel.GetPermissionOverwrite(user).Value.SendMessages == PermValue.Allow ||  // If not, update the permissions of the user
+                    channel.GetPermissionOverwrite(user).Value.AddReactions == PermValue.Allow ||
+                    channel.GetPermissionOverwrite(user).Value.Connect == PermValue.Allow ||
+                    channel.GetPermissionOverwrite(user).Value.Speak == PermValue.Allow)
+                {
+                    await channel.AddPermissionOverwriteAsync(user,
+                        new OverwritePermissions(sendMessages: PermValue.Deny, addReactions: PermValue.Deny, connect: PermValue.Deny,
+                            speak: PermValue.Deny));
+                }
+            }
+        }
+        public async Task RRUnMute(SocketGuildUser user)
+        {
+            foreach (var channel in Context.Guild.Channels) // Unmute
+            {
+                if (!channel.GetPermissionOverwrite(user).HasValue ||
+                    channel.GetPermissionOverwrite(user).Value.SendMessages == PermValue.Deny ||
+                    channel.GetPermissionOverwrite(user).Value.AddReactions == PermValue.Deny ||
+                    channel.GetPermissionOverwrite(user).Value.Connect == PermValue.Deny ||
+                    channel.GetPermissionOverwrite(user).Value.Speak == PermValue.Deny)
+                {
+                    await channel.AddPermissionOverwriteAsync(user,
+                        new OverwritePermissions(sendMessages: PermValue.Allow, addReactions: PermValue.Allow, connect: PermValue.Allow,
+                            speak: PermValue.Allow));
+                }
+            }
+        }
+
         [Command("birthday", RunMode = RunMode.Async)]
         [Summary("Posts the rats birthday mixtape lyrics")]
         [Cooldown(5)]
@@ -154,28 +187,7 @@ namespace Bibs_Discord.NET.Modules
             {
                 await Context.Channel.SendErrorAsync("Russian Roulette", "This command can only be used in a server, where the stakes are present.");
                 return;
-            }
-
-            var role = Context.Guild.Roles.FirstOrDefault(x => x.Name == "Muted"); // Fetch the role you're using to mute someone
-            if (role == null) // Create the role if there is no muted role yet
-            {
-                var newRole = await Context.Guild.CreateRoleAsync("Muted", new GuildPermissions(sendMessages: false, addReactions: false, connect: false, speak: false), null, false, null);
-                role = Context.Guild.Roles.FirstOrDefault(x => x.Id == newRole.Id);
-            }
-
-            foreach (var channel in Context.Guild.Channels) // Loop over all channels
-            {
-                if (!channel.GetPermissionOverwrite(role).HasValue ||                              // Check if the channel has the correct permissions for the muted role                             
-                    channel.GetPermissionOverwrite(role).Value.SendMessages == PermValue.Allow ||  // If not, update the permissions of the role
-                    channel.GetPermissionOverwrite(role).Value.AddReactions == PermValue.Allow ||
-                    channel.GetPermissionOverwrite(role).Value.Connect == PermValue.Allow ||
-                    channel.GetPermissionOverwrite(role).Value.Speak == PermValue.Allow)
-                {
-                    await channel.AddPermissionOverwriteAsync(role,
-                        new OverwritePermissions(sendMessages: PermValue.Deny, addReactions: PermValue.Deny, connect: PermValue.Deny,
-                            speak: PermValue.Deny));
-                }
-            }
+            }          
             try
             {
                 String reason = "";
@@ -186,12 +198,12 @@ namespace Bibs_Discord.NET.Modules
                     await channel.SendMessageAsync(reason == null ? $"You've been muted in {Context.Guild.Name} for 2 minutes. You've died in a game of Russian Roulette." : $"You've been muted in {Context.Guild.Name} for 2 minutes. You've died in a game of Russian Roulette. Try again if you dare.");
                     var user = (Context.User as SocketGuildUser);
                     await Task.Delay(2000);
-                    await user.AddRoleAsync(role);
+                    await RRMute(user);
                     await Context.Channel.TriggerTypingAsync();
                     await ReplyAsync(reason == null ? $"The chamber was loaded! {Context.User.Username} shot themself in the head!" : $"The chamber was loaded! {Context.User.Username} shot themself in the head!");
 
                     await Task.Delay(120000);
-                    await user.RemoveRoleAsync(role);
+                    await RRUnMute(user);
                     await channel.SendMessageAsync($"You've been revived in {Context.Guild.Name}");
                 }
                 else
@@ -202,7 +214,7 @@ namespace Bibs_Discord.NET.Modules
             }
             catch (Exception e)
             {
-                await Context.Channel.SendErrorAsync("Russian Roulette", $"Something went wrong: User not found.");
+                await Context.Channel.SendErrorAsync("Russian Roulette", $"Something went wrong:```fix\n{e.ToString()}```");
             }
             
 

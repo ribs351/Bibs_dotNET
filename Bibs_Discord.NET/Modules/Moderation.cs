@@ -35,6 +35,25 @@ namespace Bibs_Discord.NET.Modules
             _autoRoles = autoRoles;
         }
 
+        public async Task MutePerms(SocketGuildUser user)
+        {
+            foreach (var channel in Context.Guild.Channels) // Loop over all channels
+            {
+                await channel.AddPermissionOverwriteAsync(user,
+                        new OverwritePermissions(sendMessages: PermValue.Deny, addReactions: PermValue.Deny, connect: PermValue.Deny,
+                            speak: PermValue.Deny));
+            }
+        }
+        public async Task UnMutePerms(SocketGuildUser user)
+        {
+            foreach (var channel in Context.Guild.Channels) // Unmute
+            {
+                await channel.AddPermissionOverwriteAsync(user,
+                        new OverwritePermissions(sendMessages: PermValue.Allow, addReactions: PermValue.Allow, connect: PermValue.Allow,
+                            speak: PermValue.Allow));
+            }
+        }
+
         [Command("say"), Alias("s")]
         [Summary("Make Bibs say what you want")]
         public async Task Say([Remainder] string text)
@@ -80,69 +99,50 @@ namespace Bibs_Discord.NET.Modules
             }
 
             await Context.Channel.TriggerTypingAsync(); // Trigger typing so your user knows you're working on it
-            var role = Context.Guild.Roles.FirstOrDefault(x => x.Name == "Muted"); // Fetch the role you're using to mute someone
-            if (role == null) // Create the role if there is no muted role yet
-            {
-                var newRole = await Context.Guild.CreateRoleAsync("Muted", new GuildPermissions(sendMessages: false, addReactions: false, connect: false, speak: false), null, false, null);
-                role = Context.Guild.Roles.FirstOrDefault(x => x.Id == newRole.Id);
-            }
-
-            if (role.Position > Context.Guild.CurrentUser.Hierarchy) // Return an error when the role has a higher position than the bot
-            {
-                var builder = new EmbedBuilder()
-                 .WithThumbnailUrl(Context.Guild.IconUrl)
-                 .WithTitle("Permission denied")
-                 .WithColor(new Color(33, 176, 252))
-                 .WithDescription($"I can't assign the role {role.Mention} to the user because the role has a higher position than me.")
-                 .WithCurrentTimestamp();
-
-                var embed = builder.Build();
-                await Context.Channel.SendMessageAsync(null, false, embed);
-                return;
-            }
+            
 
             foreach (var channel in Context.Guild.Channels) // Loop over all channels
             {
-                if (!channel.GetPermissionOverwrite(role).HasValue ||                              // Check if the channel has the correct permissions for the muted role                             
-                    channel.GetPermissionOverwrite(role).Value.SendMessages == PermValue.Allow ||  // If not, update the permissions of the role
-                    channel.GetPermissionOverwrite(role).Value.AddReactions == PermValue.Allow ||
-                    channel.GetPermissionOverwrite(role).Value.Connect == PermValue.Allow ||
-                    channel.GetPermissionOverwrite(role).Value.Speak == PermValue.Allow)
+                if (!channel.GetPermissionOverwrite(user).HasValue ||                              // Check if the channel has the correct permissions for the muted role                             
+                    channel.GetPermissionOverwrite(user).Value.SendMessages == PermValue.Allow ||  // If not, update the permissions of the role
+                    channel.GetPermissionOverwrite(user).Value.AddReactions == PermValue.Allow ||
+                    channel.GetPermissionOverwrite(user).Value.Connect == PermValue.Allow ||
+                    channel.GetPermissionOverwrite(user).Value.Speak == PermValue.Allow)
                 {
-                    await channel.AddPermissionOverwriteAsync(role,
-                        new OverwritePermissions(sendMessages: PermValue.Deny, addReactions: PermValue.Deny, connect: PermValue.Deny,
-                            speak: PermValue.Deny));
+                    await MutePerms(user);
+                    await _serverHelper.SendLogAsync(Context.Guild, "Situation Log", $"{Context.User.Mention} muted {user.Mention}!");
+                    EmbedBuilder embedBuilder = new EmbedBuilder()
+                                 .WithThumbnailUrl(Context.Guild.IconUrl)
+                                 .WithTitle("Muted")
+                                 .WithColor(new Color(33, 176, 252))
+                                 .WithDescription($"Muted {user.Mention} in all text and voice channels.")
+                                 .WithCurrentTimestamp();
+
+                    Embed embed1 = embedBuilder.Build();
+                    await Context.Channel.SendMessageAsync(null, false, embed1);
+                    return;
+                }
+                else if (!channel.GetPermissionOverwrite(user).HasValue ||
+                    channel.GetPermissionOverwrite(user).Value.SendMessages == PermValue.Deny ||
+                    channel.GetPermissionOverwrite(user).Value.AddReactions == PermValue.Deny ||
+                    channel.GetPermissionOverwrite(user).Value.Connect == PermValue.Deny ||
+                    channel.GetPermissionOverwrite(user).Value.Speak == PermValue.Deny)
+                {
+                    await UnMutePerms(user);
+                    await _serverHelper.SendLogAsync(Context.Guild, "Situation Log", $"{Context.User.Mention} umuted {user.Mention}!");
+
+                    var builder = new EmbedBuilder()
+                     .WithThumbnailUrl(Context.Guild.IconUrl)
+                     .WithTitle("Unmute")
+                     .WithColor(new Color(33, 176, 252))
+                     .WithDescription($"{user.Mention} is no longer muted.")
+                     .WithCurrentTimestamp();
+
+                    var embed = builder.Build();
+                    await Context.Channel.SendMessageAsync(null, false, embed);
+                    return;
                 }
             }
-
-            if (user.Roles.Any(x => x.Name == "Muted")) // Check if the user already has the muted role
-            {
-                await user.RemoveRoleAsync(role);
-                await _serverHelper.SendLogAsync(Context.Guild, "Situation Log", $"{Context.User.Mention} umuted {user.Mention}!");
-
-                var builder = new EmbedBuilder()
-                 .WithThumbnailUrl(Context.Guild.IconUrl)
-                 .WithTitle("Unmute")
-                 .WithColor(new Color(33, 176, 252))
-                 .WithDescription($"{user.Mention} is no longer muted.")
-                 .WithCurrentTimestamp();
-
-                var embed = builder.Build();
-                await Context.Channel.SendMessageAsync(null, false, embed);
-                return;
-            }
-
-            await user.AddRoleAsync(role); // Add the role to the user
-            await _serverHelper.SendLogAsync(Context.Guild, "Situation Log", $"{Context.User.Mention} muted {user.Mention}!");
-            EmbedBuilder embedBuilder = new EmbedBuilder()
-                         .WithThumbnailUrl(Context.Guild.IconUrl)
-                         .WithTitle("Muted")
-                         .WithColor(new Color(33, 176, 252))
-                         .WithDescription($"Muted {user.Mention} in all text and voice channels.")
-                         .WithCurrentTimestamp();
-
-            Embed embed1 = embedBuilder.Build();
-            await Context.Channel.SendMessageAsync(null, false, embed1);
         }
 
         [Command("nick")]
@@ -668,6 +668,7 @@ namespace Bibs_Discord.NET.Modules
         [RequireOwner]
         public async Task kill()
         {
+            _logger.LogCritical("Battle Control Terminated.");
             await Context.Channel.TriggerTypingAsync();
             await ReplyAsync("... It was never personal");
             Environment.Exit(0);

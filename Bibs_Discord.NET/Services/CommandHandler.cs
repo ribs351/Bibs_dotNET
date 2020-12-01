@@ -15,6 +15,7 @@ using Bibs_Discord_dotNET.Ultilities;
 using Bibs_Discord_dotNET.Commons;
 using Victoria;
 using Victoria.EventArgs;
+using Microsoft.Extensions.Logging;
 
 namespace Bibs_Discord_dotNET.Services
 {
@@ -28,9 +29,10 @@ namespace Bibs_Discord_dotNET.Services
         private readonly Images _images;
         private readonly ServerHelper _serverHelper;
         private readonly LavaNode _lavaNode;
+        private readonly ILogger<CommandHandler> _logger;
 
 
-        public CommandHandler(IServiceProvider provider, DiscordSocketClient client, CommandService service, IConfiguration config, Servers servers, Images images, ServerHelper serverHelper, LavaNode lavaNode)
+        public CommandHandler(ILogger<CommandHandler> logger, IServiceProvider provider, DiscordSocketClient client, CommandService service, IConfiguration config, Servers servers, Images images, ServerHelper serverHelper, LavaNode lavaNode)
         {
             _provider = provider;
             _client = client;
@@ -40,6 +42,7 @@ namespace Bibs_Discord_dotNET.Services
             _images = images;
             _serverHelper = serverHelper;
             _lavaNode = lavaNode;
+            _logger = logger;
         }
 
         public override async Task InitializeAsync(CancellationToken cancellationToken)
@@ -84,11 +87,12 @@ namespace Bibs_Discord_dotNET.Services
         private async Task OnStartUp()
         {
             await _client.SetGameAsync($"over {_client.Guilds.Count} servers!", null, ActivityType.Watching);
+            _logger.LogCritical("Establishing Battlefield Control, standby...");
         }
 
         private async Task OnReadyAsync()
         {
-            
+            _logger.LogCritical("Battle Control online");
             if (!_lavaNode.IsConnected)
             {
                 await _lavaNode.ConnectAsync();
@@ -226,7 +230,7 @@ namespace Bibs_Discord_dotNET.Services
             if ((message.ToString().IndexOf("i serve the soviet union", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
             {
                 await message.Channel.TriggerTypingAsync();
-                await message.Channel.SendMessageAsync("https://en.meming.world/images/en/2/28/I_Serve_the_Soviet_Union.jpg");
+                await message.Channel.SendMessageAsync("https://cdn.discordapp.com/attachments/767653326560821248/782991988517240842/I_Serve_the_Soviet_Union.png");
                 return;
             }
             if ((message.ToString().IndexOf("bruh", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
