@@ -137,13 +137,16 @@ namespace Bibs_Infrastructure
 
             await _context.SaveChangesAsync();
         }
-
+        //call this method everytime bibs joins a new server otherwise bibs gets a seizure
         public async Task ClearFilterAsync(ulong id)
         {
             var server = await _context.Servers
                 .FindAsync(id);
 
-            server.Filter = false;
+            if (server == null)
+                _context.Add(new Server { Id = id, Filter = false }); //when bibs joins a new server, sets this to false by default
+            else
+                server.Filter = false; //keep setting this to false if the bot was re-added to a server
             await _context.SaveChangesAsync();
         }
 
@@ -151,7 +154,6 @@ namespace Bibs_Infrastructure
         {
             var server = await _context.Servers
                 .FindAsync(id);
-
             return await Task.FromResult(server.Filter);
         }
     }

@@ -169,6 +169,8 @@ namespace Bibs_Discord_dotNET.Services
                  .WithCurrentTimestamp();
             var embed = builder.Build();
             await arg.DefaultChannel.SendMessageAsync(null, false, embed);
+            //calls this method whenever bibs joins a new server so bibs doesn't do a die
+            await _servers.ClearFilterAsync(arg.Id);
             await _client.SetGameAsync($"over {_client.Guilds.Count} servers!", null, ActivityType.Watching);
         }
         private async Task HandleFilter(SocketMessage arg)
