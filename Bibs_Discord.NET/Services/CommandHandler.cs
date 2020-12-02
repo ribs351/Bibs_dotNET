@@ -267,12 +267,20 @@ namespace Bibs_Discord_dotNET.Services
             string prefix ="!";
             if (guild != null) 
             {
-                var guildHasFilter = _servers.GetFilterAsync(guild.Id).Result;
-                if (guildHasFilter == true)
-                {
-                    var newTask = new Task(async () => await HandleFilter(arg));
-                    newTask.Start();
+                try {
+                    var guildHasFilter = _servers.GetFilterAsync(guild.Id).Result;
+                    if (guildHasFilter == true)
+                    {
+                        var newTask = new Task(async () => await HandleFilter(arg));
+                        newTask.Start();
+                    }
                 }
+                catch (Exception e) 
+                {
+                    await _servers.ClearFilterAsync(guild.Id);
+                    await message.Channel.SendErrorAsync("Error", "Something went wrong, pleae try again, if the bot is unresponsive, contact Ribs#8205 on discord.");
+                }
+                
                 prefix = await _servers.GetGuildPrefix((message.Channel as SocketGuildChannel).Guild.Id) ?? "!";
                 if (!message.HasStringPrefix(prefix, ref argPos) && !message.HasMentionPrefix(_client.CurrentUser, ref argPos)) return;
 
