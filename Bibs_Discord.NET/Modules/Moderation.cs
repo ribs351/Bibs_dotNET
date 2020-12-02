@@ -48,9 +48,7 @@ namespace Bibs_Discord.NET.Modules
         {
             foreach (var channel in Context.Guild.Channels) // Unmute
             {
-                await channel.AddPermissionOverwriteAsync(user,
-                        new OverwritePermissions(sendMessages: PermValue.Allow, addReactions: PermValue.Allow, connect: PermValue.Allow,
-                            speak: PermValue.Allow));
+                await channel.RemovePermissionOverwriteAsync(user);
             }
         }
 
@@ -515,6 +513,16 @@ namespace Bibs_Discord.NET.Modules
             await ((Context.Channel as SocketTextChannel).ModifyAsync(x => x.SlowModeInterval = interval));
             await Context.Channel.SendSuccessAsync("Slowmode", $"Channel's slowmode interval has been adjusted to {interval} seconds!");
         }
+        [Command("filter")]
+        [Summary("Setup the word filter module")]
+        [RequireUserPermission(GuildPermission.ManageChannels, ErrorMessage = "You don't have permission to do that!")]
+        public async Task Filter()
+        {
+            await Context.Channel.TriggerTypingAsync();
+            await _servers.ModifyFilterAsync(Context.Guild.Id);
+            var fetchedServerFilter = await _servers.GetFilterAsync(Context.Guild.Id);
+            await Context.Channel.SendSuccessAsync("Word Filter", $"Successfully set the server's word filter to {fetchedServerFilter.ToString()}");
+        }
 
         [Command("logs")]
         [Summary("Setup the Situation Log")]
@@ -668,7 +676,7 @@ namespace Bibs_Discord.NET.Modules
         [RequireOwner]
         public async Task kill()
         {
-            _logger.LogCritical("Battle Control Terminated.");
+            _logger.LogDebug("Battle Control Terminated.");
             await Context.Channel.TriggerTypingAsync();
             await ReplyAsync("... It was never personal");
             Environment.Exit(0);

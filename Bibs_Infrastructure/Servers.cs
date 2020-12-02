@@ -125,5 +125,34 @@ namespace Bibs_Infrastructure
 
             return await Task.FromResult(server.Background);
         }
+        public async Task ModifyFilterAsync(ulong id)
+        {
+            var server = await _context.Servers
+                .FindAsync(id);
+
+            if (server == null)
+                _context.Add(new Server { Id = id, Filter = true });
+            else
+                server.Filter = !server.Filter;
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task ClearFilterAsync(ulong id)
+        {
+            var server = await _context.Servers
+                .FindAsync(id);
+
+            server.Filter = false;
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> GetFilterAsync(ulong id)
+        {
+            var server = await _context.Servers
+                .FindAsync(id);
+
+            return await Task.FromResult(server.Filter);
+        }
     }
 }

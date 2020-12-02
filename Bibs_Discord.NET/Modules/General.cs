@@ -9,6 +9,7 @@ using System;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Bibs_Discord_dotNET.Services;
 
 namespace Bibs_Discord.NET.Modules
 {
@@ -16,6 +17,7 @@ namespace Bibs_Discord.NET.Modules
     {
         private readonly ILogger<General> _logger;
         private readonly ServerHelper _serverHelper;
+        public ApiService ApiService { get; set; }
 
         public General(ILogger<General> logger, ServerHelper serverHelper)
         {
@@ -142,6 +144,11 @@ namespace Bibs_Discord.NET.Modules
             }
 
         }
+        [Command("steam", RunMode = RunMode.Async)]
+        [Summary("Get a steam user's info by vanity URL or steam ID64")]
+        public async Task GetSteamInfo(string userId)
+            => await ReplyAsync(embed: await ApiService.GetSteamInfoAsync(userId));
+
         [Command("serverinfo")]
         [Summary("Get server info")]
         [RequireContext(ContextType.Guild, ErrorMessage = "You need to be in a discord server to use this commands!")]

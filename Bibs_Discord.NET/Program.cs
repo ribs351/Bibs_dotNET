@@ -69,6 +69,7 @@ namespace Bibs_Discord_dotNET
                         .AddSingleton<Images>()
                         .AddSingleton<Ranks>()
                         .AddSingleton<AutoRoles>()
+                        .AddSingleton<ApiService>()
                         .AddSingleton<ServerHelper>();
                 })
                 .UseConsoleLifetime();

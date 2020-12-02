@@ -16,6 +16,7 @@ using Bibs_Discord_dotNET.Commons;
 using Victoria;
 using Victoria.EventArgs;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 
 namespace Bibs_Discord_dotNET.Services
 {
@@ -87,12 +88,12 @@ namespace Bibs_Discord_dotNET.Services
         private async Task OnStartUp()
         {
             await _client.SetGameAsync($"over {_client.Guilds.Count} servers!", null, ActivityType.Watching);
-            _logger.LogCritical("Establishing Battlefield Control, standby...");
+            _logger.LogDebug("Establishing Battlefield Control, standby...");
         }
 
         private async Task OnReadyAsync()
         {
-            _logger.LogCritical("Battle Control Online");
+            _logger.LogDebug("Battle Control Online");
             if (!_lavaNode.IsConnected)
             {
                 await _lavaNode.ConnectAsync();
@@ -170,16 +171,11 @@ namespace Bibs_Discord_dotNET.Services
             await arg.DefaultChannel.SendMessageAsync(null, false, embed);
             await _client.SetGameAsync($"over {_client.Guilds.Count} servers!", null, ActivityType.Watching);
         }
-       
-
-        private async Task OnMessageReceived(SocketMessage arg)
+        private async Task HandleFilter(SocketMessage arg)
         {
             var guild = (arg.Channel as SocketTextChannel)?.Guild;
-
-            if (!(arg is SocketUserMessage message)) return;
-            if (message.Source != MessageSource.User) return;
-
-            string[] pottyMouth = new string[] { 
+            var message = (arg as SocketUserMessage);
+            string[] pottyMouth = new string[] {
                 "faggot",
                 "faggots",
                 "nigger",
@@ -188,7 +184,7 @@ namespace Bibs_Discord_dotNET.Services
                 "niggas",
                 "fag",
                 "fags",
-                "faggy", 
+                "faggy",
                 "niglet",
                 "niglets",
                 "towelhead",
@@ -209,7 +205,29 @@ namespace Bibs_Discord_dotNET.Services
                 "jewboys"
             };
 
-            if ((message.ToString().IndexOf("hello there", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
+            if (message.Content.ToString().ToLower().Split(" ").Intersect(pottyMouth).Any())
+            {
+                await message.DeleteAsync();
+                await message.Channel.SendErrorAsync("Hey!", $"{message.Author.Mention} You can't say that!");
+                await _serverHelper.SendLogAsync(guild, "Situation Log", $"{message.Author.Mention} said `{message.Content.ToString()}`.");
+                return;
+            }
+        }
+
+        private async Task OnMessageReceived(SocketMessage arg)
+        {
+           
+            var guild = (arg.Channel as SocketTextChannel)?.Guild;
+            var guildHasFilter = _servers.GetFilterAsync(guild.Id).Result;
+            if (!(arg is SocketUserMessage message)) return;
+            if (message.Source != MessageSource.User) return;
+
+            if (guildHasFilter == true)
+            {
+                var newTask = new Task(async () => await HandleFilter(arg));
+                newTask.Start();
+            }
+                if ((message.ToString().IndexOf("hello there", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
             {
                 await message.Channel.TriggerTypingAsync();
                 await message.Channel.SendMessageAsync("GENERAL KENOBI!");
@@ -247,15 +265,7 @@ namespace Bibs_Discord_dotNET.Services
                 await message.Channel.SendMessageAsync("Have at you!");
                 return;
             }
-            if (message.Content.ToString().ToLower().Split(" ").Intersect(pottyMouth).Any())
-            {
-                await message.DeleteAsync();
-                await message.Channel.SendErrorAsync("Hey!", $"{message.Author.Mention} You can't say that!");
-                await _serverHelper.SendLogAsync(guild, "Situation Log", $"{message.Author.Mention} said `{message.Content.ToString()}`.");
-                return;
-            }
-
-
+            
             var argPos = 0;
             string prefix ="!";
             if (guild != null) 

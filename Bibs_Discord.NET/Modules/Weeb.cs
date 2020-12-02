@@ -145,21 +145,11 @@ namespace Bibs_Discord_dotNET.Modules
         [RequireBotPermission(ChannelPermission.SendMessages | ChannelPermission.EmbedLinks)]
         public async Task AnimeAsync([Remainder, Name("anime_name")] string args)
         {
-            // TODO: Show more info about the anime in the embed
-
             try
             {
                 await Context.Channel.TriggerTypingAsync();
-                // var animes = new List<string>();
                 var res = await Anime.GetAnimeAsync(args);
                 var anime = res.Data[0];
-                /*foreach (var anime in res.Data)
-                {
-                    var str = $"**{anime.Attributes.CanonicalTitle ?? anime.Attributes.Titles.JaJp}**\n" +
-                              $"{anime.Attributes.Synopsis ?? "-"}\n\n" +
-                              $"{anime.Attributes.PosterImage.Medium}";
-                    animes.Add(str);
-                }*/
 
                 var embed = new EmbedBuilder
                 {
@@ -170,7 +160,6 @@ namespace Bibs_Discord_dotNET.Modules
                 }.Build();
                 
                 await ReplyAsync("", embed: embed);
-                // await PagedReplyAsync(animes);
             }
             catch (Exception e)
             {
@@ -188,8 +177,6 @@ namespace Bibs_Discord_dotNET.Modules
         [RequireBotPermission(ChannelPermission.SendMessages | ChannelPermission.EmbedLinks)]
         public async Task MangaAsync([Remainder, Name("manga_name")] string args)
         {
-            // TODO: Show more info about the manga in the embed
-
             var manga = await Manga.GetMangaAsync(args);
             await Context.Channel.TriggerTypingAsync();
             var embed = new EmbedBuilder

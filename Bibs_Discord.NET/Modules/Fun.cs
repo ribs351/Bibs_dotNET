@@ -52,9 +52,7 @@ namespace Bibs_Discord.NET.Modules
                     channel.GetPermissionOverwrite(user).Value.Connect == PermValue.Deny ||
                     channel.GetPermissionOverwrite(user).Value.Speak == PermValue.Deny)
                 {
-                    await channel.AddPermissionOverwriteAsync(user,
-                        new OverwritePermissions(sendMessages: PermValue.Allow, addReactions: PermValue.Allow, connect: PermValue.Allow,
-                            speak: PermValue.Allow));
+                    await channel.RemovePermissionOverwriteAsync(user);
                 }
             }
         }

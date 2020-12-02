@@ -18,6 +18,7 @@ namespace Bibs_Infrastructure
         public ulong Welcome { get; set; }
         public string Background { get; set; }
         public ulong Logs { get; set; }
+        public bool Filter { get; set; }
     }
     public class Rank
     {
