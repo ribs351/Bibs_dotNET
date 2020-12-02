@@ -218,16 +218,11 @@ namespace Bibs_Discord_dotNET.Services
         {
            
             var guild = (arg.Channel as SocketTextChannel)?.Guild;
-            var guildHasFilter = _servers.GetFilterAsync(guild.Id).Result;
+            
             if (!(arg is SocketUserMessage message)) return;
             if (message.Source != MessageSource.User) return;
 
-            if (guildHasFilter == true)
-            {
-                var newTask = new Task(async () => await HandleFilter(arg));
-                newTask.Start();
-            }
-                if ((message.ToString().IndexOf("hello there", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
+            if ((message.ToString().IndexOf("hello there", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
             {
                 await message.Channel.TriggerTypingAsync();
                 await message.Channel.SendMessageAsync("GENERAL KENOBI!");
@@ -270,6 +265,12 @@ namespace Bibs_Discord_dotNET.Services
             string prefix ="!";
             if (guild != null) 
             {
+                var guildHasFilter = _servers.GetFilterAsync(guild.Id).Result;
+                if (guildHasFilter == true)
+                {
+                    var newTask = new Task(async () => await HandleFilter(arg));
+                    newTask.Start();
+                }
                 prefix = await _servers.GetGuildPrefix((message.Channel as SocketGuildChannel).Guild.Id) ?? "!";
                 if (!message.HasStringPrefix(prefix, ref argPos) && !message.HasMentionPrefix(_client.CurrentUser, ref argPos)) return;
 
