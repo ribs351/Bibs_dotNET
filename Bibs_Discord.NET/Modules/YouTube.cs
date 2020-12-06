@@ -73,7 +73,7 @@ namespace Bibs_Discord_dotNET.Modules
                     {
                         fullVideoUrl = $"{videoUrlPrefix}{result.Id.VideoId.ToString()}";
                     }
-                    sb.AppendLine($":video_camera: **__{result.Snippet.ChannelTitle}__** -> [**{result.Snippet.Title}**]({fullVideoUrl})\n\n *{description}*\n");
+                    sb.AppendLine($"**__{result.Snippet.ChannelTitle}__** -> [**{result.Snippet.Title}**]({fullVideoUrl})\n\n *{description}*\n");
                 }
                 builder.Description = sb.ToString();
                 var embed = builder.Build();
