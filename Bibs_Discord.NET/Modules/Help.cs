@@ -59,34 +59,66 @@ namespace Bibs_Discord.NET.Modules
         public async Task HelpAsync(string command)
         {
             var result = _service.Search(Context, command);
-
-            if (!result.IsSuccess)
+            string prefix = "!";
+            if ((Context.Channel as IDMChannel) != null)
             {
-                await ReplyAsync($"Sorry, I couldn't find a command like **{command}**.");
-                return;
-            }
-
-            var prefix = await _servers.GetGuildPrefix((Context.Channel as SocketGuildChannel).Guild.Id) ?? "!";
-            var builder = new EmbedBuilder()
-            {
-                Color = new Color(114, 137, 218),
-                Description = $"Here are some commands like **{command}**"
-            };
-
-            foreach (var match in result.Commands)
-            {
-                var cmd = match.Command;
-
-                builder.AddField(x =>
+                if (!result.IsSuccess)
                 {
-                    x.Name = string.Join(", ", cmd.Aliases);
-                    x.Value = $"Parameters: {string.Join(", ", cmd.Parameters.Select(p => p.Name))}\n" +
-                              $"Summary: {cmd.Summary}";
-                    x.IsInline = false;
-                });
+                    await ReplyAsync($"Sorry, I couldn't find a command like **{command}**.");
+                    return;
+                }
+                var builder = new EmbedBuilder()
+                {
+                    Color = new Color(114, 137, 218),
+                    Description = $"Here are some commands like **{command}**"
+                };
+
+                foreach (var match in result.Commands)
+                {
+                    var cmd = match.Command;
+
+                    builder.AddField(x =>
+                    {
+                        x.Name = string.Join(", ", cmd.Aliases);
+                        x.Value = $"Parameters: {string.Join(", ", cmd.Parameters.Select(p => p.Name))}\n" +
+                                  $"Summary: {cmd.Summary}";
+                        x.IsInline = false;
+                    });
+                }
+                await Context.Channel.TriggerTypingAsync();
+                await ReplyAsync("", false, builder.Build());
             }
-            await Context.Channel.TriggerTypingAsync();
-            await ReplyAsync("", false, builder.Build());
+            else
+            {
+                if (!result.IsSuccess)
+                {
+                    await ReplyAsync($"Sorry, I couldn't find a command like **{command}**.");
+                    return;
+                }
+
+                prefix = await _servers.GetGuildPrefix((Context.Channel as SocketGuildChannel).Guild.Id) ?? "!";
+                var builder = new EmbedBuilder()
+                {
+                    Color = new Color(114, 137, 218),
+                    Description = $"Here are some commands like **{command}**"
+                };
+
+                foreach (var match in result.Commands)
+                {
+                    var cmd = match.Command;
+
+                    builder.AddField(x =>
+                    {
+                        x.Name = string.Join(", ", cmd.Aliases);
+                        x.Value = $"Parameters: {string.Join(", ", cmd.Parameters.Select(p => p.Name))}\n" +
+                                  $"Summary: {cmd.Summary}";
+                        x.IsInline = false;
+                    });
+                }
+                await Context.Channel.TriggerTypingAsync();
+                await ReplyAsync("", false, builder.Build());
+            }
+            
         }
     }
 }

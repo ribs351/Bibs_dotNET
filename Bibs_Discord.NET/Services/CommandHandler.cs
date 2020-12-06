@@ -32,7 +32,6 @@ namespace Bibs_Discord_dotNET.Services
         private readonly LavaNode _lavaNode;
         private readonly ILogger<CommandHandler> _logger;
 
-
         public CommandHandler(ILogger<CommandHandler> logger, IServiceProvider provider, DiscordSocketClient client, CommandService service, IConfiguration config, Servers servers, Images images, ServerHelper serverHelper, LavaNode lavaNode)
         {
             _provider = provider;
@@ -206,7 +205,24 @@ namespace Bibs_Discord_dotNET.Services
                 "jewboy",
                 "jewboys"
             };
-
+            /* WIP gonna have to invoke Regex aka the elder god for this to work LMFAO
+             * God dammit lelic if you can do this why can't you fucking code your game better
+            Dictionary<string, string> lelic = new Dictionary<string, string>();
+            lelic.Add("fuck","garden");
+            lelic.Add("shit", "pudding");
+            foreach (var item in lelic)
+            {
+                if (message.Content.ToString().ToLower().Contains(item.Key))
+                {
+                    string original = message.Content.ToString();
+                    string familyFriendly = original.Replace(item.Key, item.Value);
+                    await message.DeleteAsync();
+                    await message.Channel.SendErrorAsync("Hey!", $"{message.Author.Mention} said {familyFriendly}");
+                    await _serverHelper.SendLogAsync(guild, "Situation Log", $"{message.Author.Mention} said `{message.Content.ToString()}`.");
+                    return;
+                }
+            }
+            */
             if (message.Content.ToString().ToLower().Split(" ").Intersect(pottyMouth).Any())
             {
                 await message.DeleteAsync();
@@ -215,19 +231,124 @@ namespace Bibs_Discord_dotNET.Services
                 return;
             }
         }
-
-        private async Task OnMessageReceived(SocketMessage arg)
+        private async Task HandleAutomatedResponse(SocketMessage arg)
         {
-           
-            var guild = (arg.Channel as SocketTextChannel)?.Guild;
-            
-            if (!(arg is SocketUserMessage message)) return;
-            if (message.Source != MessageSource.User) return;
+            var message = (arg as SocketUserMessage);
+            //cringe
+            List<string> compliments = new List<string>();
+            compliments.Add("you're cute");
+            compliments.Add("you are so cute");
+            compliments.Add("you're so cute");
+            compliments.Add("you're a cutie");
+            compliments.Add("short and cute");
+            compliments.Add("i like you");
+            compliments.Add("i love you");
+            compliments.Add("marry me");
+            compliments.Add("do you like being a girl");
+            compliments.Add("go on a date");
+            compliments.Add("best girl");
 
+            Random random = new Random();
+            string[] response = 
+            {
+                "Wh-Wha?!",
+                "Wh-What are you saying?",
+                "?!!",
+                "Don't say those things out loud!",
+                "Hmph",
+                "Sheesh!",
+                "Can you not?",
+                "Hehhh!?",
+                "...",
+                "G-Geez!"
+            };
+            string[] negative =
+            {
+                "Nein mein Herr",
+                "Not up for that!",
+                "NO!",
+                "You're crazy!",
+                "Hell no!",
+                "No, sir!",
+                "Yknow... I REALLY CAN'T!",
+                "WHAT? NOOO!",
+                "That's stupid! NO!",
+                "No way!",
+                "Uhhh... No?",
+                "Forget it! NO!",
+                "YEAH THAT'S GONNA BE A NO!",
+                "Can't do it, mate!",
+                "Not happening!",
+                "You're off yer head!",
+                "Fuck off you dickhead!",
+                "I'm afraid not.",
+                "No.",
+                "NO WAY BUDDY BOY!",
+                "Argh for christ's sake! REALLY?",
+                "Fuck that.",
+                "I BLOODY WILL NOT!",
+                "ARE YOU MAD?",
+                "Are you bloody kidding?",
+                "I don't think so, buddy.",
+                "No! What? NO!",
+                "I CAN'T!",
+                "Negative!",
+                "Fat chance, buddy boy!",
+                "Fuck that, pal!",
+                "Ye can fuck off!",
+                "It's not possible, sir!",
+                "I'm afraid I can't.",
+                "That'll be a no, sir!",
+                "No chance!",
+                "It ain't gonna happen!",
+                "Can't be done!",
+                "Sorry, old chum, I can't!",
+                "Not right now.",
+                "NO WAY, PAL!",
+                "IMPOSSIBLE, SIR!",
+                "That's bloody STUPID! NO!",
+                "I'M NOT DOING A DAMN THING!",
+                "LIKE HELL I WILL!",
+                "ARE YOU OUT OF YOUR DAMN MIND?",
+                "YOU WANT ME TO DO WHAT?",
+                "NO BLOODY WAY!",
+                "No!",
+                "'afraid not!",
+                "Can't, sir!",
+                "Nah!",
+                "'afraid I can't!",
+                "I'm not FUCKING doing it!",
+                "Stop wasting my time!",
+                "Do I look like your fucking errand boy?",
+                "Shut your god damn mouth, NO!",
+                "God almighty, NO!"
+
+            };
+            foreach (var compliment in compliments)
+            {
+                if (message.Content.ToLower().Contains(compliment) && message.Content.ToLower().Contains("bibs"))
+                {
+                    await message.Channel.TriggerTypingAsync();
+                    await message.Channel.SendMessageAsync($"{response[random.Next(0, response.Length)].ToString()}");
+                    return;
+                }
+            }
+            if ((message.Content.ToLower().Contains("you're flat") || message.Content.ToLower().Contains("you are flat")) && message.Content.ToLower().Contains("bibs"))
+            {
+                await message.Channel.TriggerTypingAsync();
+                await message.Channel.SendMessageAsync("I'll murder you!");
+                return;
+            }
             if ((message.ToString().IndexOf("hello there", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
             {
                 await message.Channel.TriggerTypingAsync();
                 await message.Channel.SendMessageAsync("GENERAL KENOBI!");
+                return;
+            }
+            if ((message.ToString().IndexOf("negative", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
+            {
+                await message.Channel.TriggerTypingAsync();
+                await message.Channel.SendMessageAsync($"{negative[random.Next(0, negative.Length)].ToString()}");
                 return;
             }
             if ((message.ToString().IndexOf("it was never personal", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
@@ -262,6 +383,17 @@ namespace Bibs_Discord_dotNET.Services
                 await message.Channel.SendMessageAsync("Have at you!");
                 return;
             }
+        }
+        private async Task OnMessageReceived(SocketMessage arg)
+        {
+            
+            var guild = (arg.Channel as SocketTextChannel)?.Guild;
+            
+            if (!(arg is SocketUserMessage message)) return;
+            if (message.Source != MessageSource.User) return;
+
+            var firstTask = new Task(async () => await HandleAutomatedResponse(arg));
+            firstTask.Start();
             
             var argPos = 0;
             string prefix ="!";
@@ -278,7 +410,7 @@ namespace Bibs_Discord_dotNET.Services
                 catch (Exception e) 
                 {
                     await _servers.ClearFilterAsync(guild.Id);
-                    await message.Channel.SendErrorAsync("Error", "Something went wrong, pleae try again, if the bot is unresponsive, contact Ribs#8205 on discord.");
+                    await message.Channel.SendErrorAsync("Error", "Something went wrong, please try again, if the bot is unresponsive, contact Ribs#8205 on discord.");
                 }
                 
                 prefix = await _servers.GetGuildPrefix((message.Channel as SocketGuildChannel).Guild.Id) ?? "!";

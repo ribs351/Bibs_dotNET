@@ -15,12 +15,14 @@ namespace Bibs_Discord_dotNET.Ultilities
         private readonly Servers _servers;
         private readonly Ranks _ranks;
         private readonly AutoRoles _autoRoles;
+        private readonly Muteds _muteds;
 
-        public ServerHelper(Servers servers, Ranks ranks, AutoRoles autoRoles)
+        public ServerHelper(Servers servers, Ranks ranks, AutoRoles autoRoles, Muteds muteds)
         {
             _servers = servers;
             _ranks = ranks;
             _autoRoles = autoRoles;
+            _muteds = muteds;
         }
 
         public async Task SendLogAsync(IGuild guild, string title, string description)

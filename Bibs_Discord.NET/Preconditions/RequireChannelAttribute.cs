@@ -1,4 +1,7 @@
-﻿using System;
+﻿/*
+ * WIP
+ * Will expand on this later
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord.Commands;
@@ -29,3 +32,4 @@ namespace Bibs_Discord_dotNET.Preconditions
         }
     }
 }
+*/

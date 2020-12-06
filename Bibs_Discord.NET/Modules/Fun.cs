@@ -20,10 +20,12 @@ namespace Bibs_Discord.NET.Modules
     public class Fun : ModuleBase<SocketCommandContext>
     {
         private readonly ILogger<Fun> _logger;
+        private readonly Muteds _muteds;
 
-        public Fun(ILogger<Fun> logger)
+        public Fun(ILogger<Fun> logger, Muteds muteds)
         {
             _logger = logger;
+            _muteds = muteds;
 
         }
         public async Task RRMute(SocketGuildUser user)
@@ -194,6 +196,7 @@ namespace Bibs_Discord.NET.Modules
                 {
                     var channel = await Context.User.GetOrCreateDMChannelAsync();
                     await channel.SendMessageAsync(reason == null ? $"You've been muted in {Context.Guild.Name} for 2 minutes. You've died in a game of Russian Roulette." : $"You've been muted in {Context.Guild.Name} for 2 minutes. You've died in a game of Russian Roulette. Try again if you dare.");
+                    await _muteds.AddMutedAsync(Context.Guild.Id, Context.User.Id);
                     var user = (Context.User as SocketGuildUser);
                     await Task.Delay(2000);
                     await RRMute(user);
@@ -203,6 +206,7 @@ namespace Bibs_Discord.NET.Modules
                     await Task.Delay(120000);
                     await RRUnMute(user);
                     await channel.SendMessageAsync($"You've been revived in {Context.Guild.Name}");
+                    await _muteds.RemoveMutedAsync(Context.Guild.Id, Context.User.Id);
                 }
                 else
                 {

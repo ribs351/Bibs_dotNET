@@ -22,17 +22,19 @@ namespace Bibs_Discord.NET.Modules
         private readonly ILogger<Moderation> _logger;
         private readonly Servers _servers;
         private readonly Ranks _ranks;
+        private readonly Muteds _muteds;
         private readonly AutoRoles _autoRoles;
 
         private readonly GuildPermissions mutedPerms = new GuildPermissions(sendMessages: false);
 
-        public Moderation(ServerHelper serverHelper, ILogger<Moderation> logger, Servers servers, Ranks ranks, AutoRoles autoRoles)
+        public Moderation(Muteds muteds,ServerHelper serverHelper, ILogger<Moderation> logger, Servers servers, Ranks ranks, AutoRoles autoRoles)
         {
             _serverHelper = serverHelper;
             _logger = logger;
             _servers = servers;
             _ranks = ranks;
             _autoRoles = autoRoles;
+            _muteds = muteds;
         }
 
         public async Task MutePerms(SocketGuildUser user)
@@ -108,6 +110,7 @@ namespace Bibs_Discord.NET.Modules
                     channel.GetPermissionOverwrite(user).Value.Speak == PermValue.Allow)
                 {
                     await MutePerms(user);
+                    await _muteds.AddMutedAsync(Context.Guild.Id, user.Id);
                     await _serverHelper.SendLogAsync(Context.Guild, "Situation Log", $"{Context.User.Mention} muted {user.Mention}!");
                     EmbedBuilder embedBuilder = new EmbedBuilder()
                                  .WithThumbnailUrl(Context.Guild.IconUrl)
@@ -127,6 +130,7 @@ namespace Bibs_Discord.NET.Modules
                     channel.GetPermissionOverwrite(user).Value.Speak == PermValue.Deny)
                 {
                     await UnMutePerms(user);
+                    await _muteds.RemoveMutedAsync(Context.Guild.Id, user.Id);
                     await _serverHelper.SendLogAsync(Context.Guild, "Situation Log", $"{Context.User.Mention} umuted {user.Mention}!");
 
                     var builder = new EmbedBuilder()
@@ -237,6 +241,38 @@ namespace Bibs_Discord.NET.Modules
             await ReplyAsync($"The prefix has been adjusted to `{prefix}`");
 
             await _serverHelper.SendLogAsync(Context.Guild, "Situation Log", $"{Context.User.Mention} modified the prefix to `{prefix}`.");
+        }
+        [Command("mutedusers", RunMode = RunMode.Async)]
+        [Summary("Lists all currently muted users, use this command daily")]
+        [RequireUserPermission(GuildPermission.ManageMessages, ErrorMessage = "You don't have permission to do that!")]
+        [RequireContext(ContextType.Guild, ErrorMessage = "You need to be in a discord server to use this commands!")]
+        public async Task ListMuted()
+        {
+            var mutes = await _muteds.GetMutesAsync(Context.Guild.Id);
+            if (mutes.Count == 0)
+            {
+                await Context.Channel.TriggerTypingAsync();
+                await Context.Channel.SendErrorAsync("Muted Users", "Nobody is muted at the moment!");
+                return;
+            }
+
+            await Context.Channel.TriggerTypingAsync();
+
+            string description = "This message lists all muted users by ID.\nIn order to unmute a user, use the command with the provide user IDs here.";
+            foreach (var mute in mutes)
+            {
+                description += $"\n`{mute.UserId}`";
+            }
+            var builder = new EmbedBuilder()
+                   .WithThumbnailUrl(Context.Guild.IconUrl)
+                   .WithTitle("Muted")
+                   .WithColor(new Color(33, 176, 252))
+                   .WithDescription(description)
+                   .WithCurrentTimestamp();
+
+            var embed = builder.Build();
+            await Context.Channel.TriggerTypingAsync();
+            await Context.Channel.SendMessageAsync(null, false, embed);
         }
         [Command("listranks", RunMode = RunMode.Async)]
         [Summary("Lists all available ranks")]
