@@ -112,6 +112,87 @@ namespace Bibs_Discord.NET.Modules
             await Context.Channel.TriggerTypingAsync();
             await ReplyAsync(embed: builder.Build());
         }
+        [Command("bruh")]
+        [Summary("Used when there's a bruh moment")]
+        public async Task Bruh()
+        {
+            await Context.Channel.TriggerTypingAsync();
+            await Context.Channel.SendMessageAsync("**Ah, MAN!** This **ReAlLy** be A ***bruh*** moment.");
+            return;
+        }
+
+        [Command("negative")]
+        [Alias("no")]
+        [Summary("Use the negative voice command")]
+        public async Task Negative()
+        {
+            Random random = new Random();
+            string[] negative =
+            {
+                "Nein mein Herr",
+                "Not up for that!",
+                "NO!",
+                "You're crazy!",
+                "Hell no!",
+                "No, sir!",
+                "Yknow... I REALLY CAN'T!",
+                "WHAT? NOOO!",
+                "That's stupid! NO!",
+                "No way!",
+                "Uhhh... No?",
+                "Forget it! NO!",
+                "YEAH THAT'S GONNA BE A NO!",
+                "Can't do it, mate!",
+                "Not happening!",
+                "You're off yer head!",
+                "Fuck off you dickhead!",
+                "I'm afraid not.",
+                "No.",
+                "NO WAY BUDDY BOY!",
+                "Argh for christ's sake! REALLY?",
+                "Fuck that.",
+                "I BLOODY WILL NOT!",
+                "ARE YOU MAD?",
+                "Are you bloody kidding?",
+                "I don't think so, buddy.",
+                "No! What? NO!",
+                "I CAN'T!",
+                "Negative!",
+                "Fat chance, buddy boy!",
+                "Fuck that, pal!",
+                "Ye can fuck off!",
+                "It's not possible, sir!",
+                "I'm afraid I can't.",
+                "That'll be a no, sir!",
+                "No chance!",
+                "It ain't gonna happen!",
+                "Can't be done!",
+                "Sorry, old chum, I can't!",
+                "Not right now.",
+                "NO WAY, PAL!",
+                "IMPOSSIBLE, SIR!",
+                "That's bloody STUPID! NO!",
+                "I'M NOT DOING A DAMN THING!",
+                "LIKE HELL I WILL!",
+                "ARE YOU OUT OF YOUR DAMN MIND?",
+                "YOU WANT ME TO DO WHAT?",
+                "NO BLOODY WAY!",
+                "No!",
+                "'afraid not!",
+                "Can't, sir!",
+                "Nah!",
+                "'afraid I can't!",
+                "I'm not FUCKING doing it!",
+                "Stop wasting my time!",
+                "Do I look like your fucking errand boy?",
+                "Shut your god damn mouth, NO!",
+                "God almighty, NO!"
+
+            };
+            await Context.Channel.TriggerTypingAsync();
+            await Context.Channel.SendMessageAsync($"{negative[random.Next(0, negative.Length)].ToString()}");
+            return;
+        }
         [Command("meme", RunMode = RunMode.Async)]
         [Alias("reddit")]
         [Summary("Get a random post from a subreddit, default is r/memes")]

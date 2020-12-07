@@ -75,7 +75,7 @@ namespace Bibs_Discord_dotNET.Services
         private async Task OnUserIsTyping(SocketUser u, ISocketMessageChannel m)
         {
             if (u.IsBot) return;
-            int random = new Random().Next(0, 1000);
+            int random = new Random().Next(0, 2000);
             string username = u.Username;
             if (random == 5)
             {
@@ -170,6 +170,7 @@ namespace Bibs_Discord_dotNET.Services
             await arg.DefaultChannel.SendMessageAsync(null, false, embed);
             //calls this method whenever bibs joins a new server so bibs doesn't do a die
             await _servers.ClearFilterAsync(arg.Id);
+            await _servers.ClearRaidAsync(arg.Id);
             await _client.SetGameAsync($"over {_client.Guilds.Count} servers!", null, ActivityType.Watching);
         }
         private async Task HandleFilter(SocketMessage arg)
@@ -262,68 +263,7 @@ namespace Bibs_Discord_dotNET.Services
                 "...",
                 "G-Geez!"
             };
-            string[] negative =
-            {
-                "Nein mein Herr",
-                "Not up for that!",
-                "NO!",
-                "You're crazy!",
-                "Hell no!",
-                "No, sir!",
-                "Yknow... I REALLY CAN'T!",
-                "WHAT? NOOO!",
-                "That's stupid! NO!",
-                "No way!",
-                "Uhhh... No?",
-                "Forget it! NO!",
-                "YEAH THAT'S GONNA BE A NO!",
-                "Can't do it, mate!",
-                "Not happening!",
-                "You're off yer head!",
-                "Fuck off you dickhead!",
-                "I'm afraid not.",
-                "No.",
-                "NO WAY BUDDY BOY!",
-                "Argh for christ's sake! REALLY?",
-                "Fuck that.",
-                "I BLOODY WILL NOT!",
-                "ARE YOU MAD?",
-                "Are you bloody kidding?",
-                "I don't think so, buddy.",
-                "No! What? NO!",
-                "I CAN'T!",
-                "Negative!",
-                "Fat chance, buddy boy!",
-                "Fuck that, pal!",
-                "Ye can fuck off!",
-                "It's not possible, sir!",
-                "I'm afraid I can't.",
-                "That'll be a no, sir!",
-                "No chance!",
-                "It ain't gonna happen!",
-                "Can't be done!",
-                "Sorry, old chum, I can't!",
-                "Not right now.",
-                "NO WAY, PAL!",
-                "IMPOSSIBLE, SIR!",
-                "That's bloody STUPID! NO!",
-                "I'M NOT DOING A DAMN THING!",
-                "LIKE HELL I WILL!",
-                "ARE YOU OUT OF YOUR DAMN MIND?",
-                "YOU WANT ME TO DO WHAT?",
-                "NO BLOODY WAY!",
-                "No!",
-                "'afraid not!",
-                "Can't, sir!",
-                "Nah!",
-                "'afraid I can't!",
-                "I'm not FUCKING doing it!",
-                "Stop wasting my time!",
-                "Do I look like your fucking errand boy?",
-                "Shut your god damn mouth, NO!",
-                "God almighty, NO!"
-
-            };
+            
             foreach (var compliment in compliments)
             {
                 if (message.Content.ToLower().Contains(compliment) && message.Content.ToLower().Contains("bibs"))
@@ -342,13 +282,7 @@ namespace Bibs_Discord_dotNET.Services
             if ((message.ToString().IndexOf("hello there", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
             {
                 await message.Channel.TriggerTypingAsync();
-                await message.Channel.SendMessageAsync("GENERAL KENOBI!");
-                return;
-            }
-            if ((message.ToString().IndexOf("negative", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
-            {
-                await message.Channel.TriggerTypingAsync();
-                await message.Channel.SendMessageAsync($"{negative[random.Next(0, negative.Length)].ToString()}");
+                await message.Channel.SendMessageAsync("GENERAL KENOBI! You are a bold one.");
                 return;
             }
             if ((message.ToString().IndexOf("it was never personal", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
@@ -367,12 +301,6 @@ namespace Bibs_Discord_dotNET.Services
             {
                 await message.Channel.TriggerTypingAsync();
                 await message.Channel.SendMessageAsync("https://cdn.discordapp.com/attachments/767653326560821248/782991988517240842/I_Serve_the_Soviet_Union.png");
-                return;
-            }
-            if ((message.ToString().IndexOf("bruh", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
-            {
-                await message.Channel.TriggerTypingAsync();
-                await message.Channel.SendMessageAsync("**Ah, MAN!** This **ReAlLy** be A ***bruh*** moment.");
                 return;
             }
             if ((message.ToString().IndexOf("what is a man", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)

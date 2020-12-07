@@ -20,6 +20,7 @@ namespace Bibs_Infrastructure
         public string Background { get; set; }
         public ulong Logs { get; set; }
         public bool Filter { get; set; }
+        public bool Raid { get; set; }
     }
     public class Rank
     {

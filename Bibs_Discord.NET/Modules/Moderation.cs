@@ -27,7 +27,7 @@ namespace Bibs_Discord.NET.Modules
 
         private readonly GuildPermissions mutedPerms = new GuildPermissions(sendMessages: false);
 
-        public Moderation(Muteds muteds,ServerHelper serverHelper, ILogger<Moderation> logger, Servers servers, Ranks ranks, AutoRoles autoRoles)
+        public Moderation(Muteds muteds, ServerHelper serverHelper, ILogger<Moderation> logger, Servers servers, Ranks ranks, AutoRoles autoRoles)
         {
             _serverHelper = serverHelper;
             _logger = logger;
@@ -99,7 +99,7 @@ namespace Bibs_Discord.NET.Modules
             }
 
             await Context.Channel.TriggerTypingAsync(); // Trigger typing so your user knows you're working on it
-            
+
 
             foreach (var channel in Context.Guild.Channels) // Loop over all channels
             {
@@ -548,6 +548,39 @@ namespace Bibs_Discord.NET.Modules
         {
             await ((Context.Channel as SocketTextChannel).ModifyAsync(x => x.SlowModeInterval = interval));
             await Context.Channel.SendSuccessAsync("Slowmode", $"Channel's slowmode interval has been adjusted to {interval} seconds!");
+        }
+        [Command("raid", RunMode = RunMode.Async)]
+        [Summary("Toggles raid mode, kicks people that recently joined during the last 30 minutes, use when your server is under attack")]
+        [RequireUserPermission(GuildPermission.KickMembers, ErrorMessage = "You don't have permission to do that!")]
+        public async Task Raid()
+        {
+            var thirtyMinutes = new TimeSpan(0, 30, 0);
+            var fetchedServerRaid = await _servers.GetRaidAsync(Context.Guild.Id);
+            try 
+            {
+                await _servers.ModifyRaidAsync(Context.Guild.Id);
+                await Context.Channel.SendSuccessAsync("Raid Mode", $"Successfully sets the raid mode to {fetchedServerRaid.ToString()}");
+                while (fetchedServerRaid == true)
+                {
+                    foreach (var user in Context.Guild.Users)
+                    {
+                        if ((DateTime.Now - user.JoinedAt) < thirtyMinutes)
+                        {
+                            var channel = await user.GetOrCreateDMChannelAsync();
+                            await channel.SendMessageAsync($"You've been kicked from {Context.Guild.Name} as a result of a raid that was detected. If you feel like you shouldn't have got kicked, please feel free to join back.");
+                            await user.KickAsync();
+                        }
+                        else
+                            continue;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                await _servers.ClearRaidAsync(Context.Guild.Id);
+                await Context.Channel.SendErrorAsync("Error", "Something went wrong, please try again, if the bot is unresponsive, contact Ribs#8205 on discord.");
+            }
+              
         }
         [Command("filter")]
         [Summary("Setup the word filter module")]
