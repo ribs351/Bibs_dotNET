@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29306.81
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bell_Discord_dotNET", "Bibs_Discord.NET\Bell_Discord_dotNET.csproj", "{12526492-AC28-452F-8E22-6DD4CF5ADDA6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bibs_Discord_dotNET", "Bibs_Discord.NET\Bibs_Discord_dotNET.csproj", "{12526492-AC28-452F-8E22-6DD4CF5ADDA6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bibs_Infrastructure", "Bibs_Infrastructure\Bibs_Infrastructure.csproj", "{1B936E1B-1B82-48ED-BDB9-DD3B9EFA6B94}"
 EndProject

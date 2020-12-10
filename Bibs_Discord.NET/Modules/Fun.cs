@@ -193,6 +193,96 @@ namespace Bibs_Discord.NET.Modules
             await Context.Channel.SendMessageAsync($"{negative[random.Next(0, negative.Length)].ToString()}");
             return;
         }
+        [Command("intimidate")]
+        [Summary("Use the intimidate voice command")]
+        public async Task Intimidate()
+        {
+            Random random = new Random();
+            string[] intimidate =
+            {
+                "Down on the ground!",
+                "Give up!",
+                "Down on the ground! Now!",
+                "ها اقتلك ان شاء الله!",
+                "Do you really want to die out here?",
+                "Hands up! Drop your weapons!",
+                "You should run!",
+                "I'LL FUCKING KILL YOU!",
+                "GET DOWN ON THE GROUND!",
+                "DROP YOUR WEAPONS NOW!",
+                "ON YOUR KNEES!",
+                "I'LL GET YOU!",
+                "DIE!",
+                "Don't be stupid, man! Give up!",
+                "Get down on the ground!",
+                "Get down!",
+                "On your knees!",
+                "On the ground, NOW!",
+                "Down on the ground! DO IT!",
+                "You're in trouble now, ASSHOLE!",
+                "ASSHOLE!",
+                "I AM NOT IMPRESSED, MOTHERFUCKER!",
+                "HEY! FUCKFACE!",
+                "Get down! GET THE FUCK DOWN!",
+                "I'm coming!",
+                "Get the fuck down!",
+                "I'LL SHOOT YOU IN THE GODDAMN FACE!",
+                "DROP YOUR GODDAMN WEAPON!",
+                "GET DOWN! GET DOWN!",
+                "Come on, asshole!",
+                "Drop your gun!",
+                "I'll shoot you!",
+                "بقتلك!",
+                "Get down on the ground, NOW!",
+                "Get down! Get down on the ground!",
+                "Come here, damn you!",
+                "Hah! What are you? Afraid?",
+                "DOWN! GET DOWN!",
+                "PUSSY!",
+                "COME HERE!",
+                "DON'T MAKE ME DO THIS!",
+                "امك!",
+                "Hey! Give yourself up!",
+                "Give up! Surrender now!",
+                "Bastard, I'm coming for you!",
+                "You're surrounded, you know?",
+                "We'll kill you!",
+                "You're dead!",
+                "FUCK YOU!",
+                "GIVE UP, MOTHERFUCKER!",
+                "BASTARD! *inhales* PIECE OF SHIT!",
+                "DIE, YOU BASTARD!",
+                "SHOW ME A REAL FIGHT!",
+                "يل قحبة!",
+                "Give up!",
+                "Goddamnit, just give up!",
+                "What are you doing? Just give up!",
+                "يا خرا!",
+                "You're dead, you piece of shit!",
+                "FUCKER! YOU'RE DEAD!",
+                "DROP IT! DROP YOUR GUN!",
+                "DROP YOUR FUCKING WEAPON!",
+                "YOU MISSED!",
+                "бегите, пидоры!",
+                "че молчите, обосрались?",
+                "You're going to die, idiot!",
+                "Why not give up?",
+                "беги к мамочке, беги, сука!",
+                "Haha, run!",
+                "Give up now! Drop your weapon!",
+                "выходи, драться будем",
+                "Just surrender! сдавайся!",
+                "че ты, ссышь, птичка, а?",
+                "выходи, сука!",
+                "YOU MISSED!",
+                "SHUT THE FUCK UP!",
+                "YOU WANT TO KILL ME?",
+                "KILL THEM! KILL THEM!"
+            };
+            await Context.Channel.TriggerTypingAsync();
+            await Context.Channel.SendMessageAsync($"{intimidate[random.Next(0, intimidate.Length)].ToString()}");
+            return;
+        }
         [Command("meme", RunMode = RunMode.Async)]
         [Alias("reddit")]
         [Summary("Get a random post from a subreddit, default is r/memes")]

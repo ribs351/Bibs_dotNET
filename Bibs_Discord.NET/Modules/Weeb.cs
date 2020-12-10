@@ -10,6 +10,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Kitsu.Anime;
 using Kitsu.Manga;
+using NHentaiAPI;
+using System.Linq;
 
 namespace Bibs_Discord_dotNET.Modules
 {
@@ -102,12 +104,13 @@ namespace Bibs_Discord_dotNET.Modules
                 return;
             }
         }
-        [Command("nukes")]
-        [Summary("Gives you a random 6 digit number")]
-        public async Task Nukes()
+        [Command("nukes", RunMode = RunMode.Async)]
+        [Summary("Generates launch codes based on your query")]
+        public async Task Nukes([Remainder] string query)
         {
-            Random rnd = new Random();
-            int codes = rnd.Next(1, 334763);
+            var client = new NHentaiClient();
+            var results = (await client.GetSearchPageListAsync(query, 1)).Result;
+            string description = "This message lists all available launch codes:";
 
             if (NNN == true)
             {
@@ -119,22 +122,56 @@ namespace Bibs_Discord_dotNET.Modules
             {
                 if ((Context.Channel as IDMChannel) != null)
                 {
-                    var builder = new EmbedBuilder()
-                   .WithColor(new Color(33, 176, 252))
-                   .WithTitle($"Your nuke code is {codes}")
-                   .WithUrl("https://nhentai.net/g/" + codes.ToString());
-                    await Context.Channel.TriggerTypingAsync();
-                    await ReplyAsync(embed: builder.Build());
+                    try
+                    {
+                        foreach (var result in results)
+                        {
+                            foreach (var tag in result.Tags)
+                                if (tag.Id == 12227)
+                                {
+                                    description += $"\n[{result.Id.ToString()}](https://nhentai.net/g/{result.Id.ToString()})";
+                                }
+                        }
+                        var builder = new EmbedBuilder()
+                             .WithTitle("Nuclear Launch Codes")
+                             .WithColor(new Color(33, 176, 252))
+                             .WithDescription(description)
+                             .WithCurrentTimestamp();
+
+                        var embed = builder.Build();
+                        await Context.Channel.SendMessageAsync(null, false, embed);
+                    }
+                    catch (Exception e)
+                    {
+                        await ReplyAsync("Something went wrong with the nukes");
+                    }
                     return;
                 }
                 else if ((Context.Channel as ITextChannel).IsNsfw)
                 {
-                    var builder = new EmbedBuilder()
-                   .WithColor(new Color(33, 176, 252))
-                   .WithTitle($"Your nuke code is {codes}")
-                   .WithUrl("https://nhentai.net/g/" + codes.ToString());
-                    await Context.Channel.TriggerTypingAsync();
-                    await ReplyAsync(embed: builder.Build());
+                    try
+                    {
+                        foreach (var result in results)
+                        {
+                            foreach (var tag in result.Tags)
+                                if (tag.Id == 12227)
+                                {
+                                    description += $"\n[{result.Id.ToString()}](https://nhentai.net/g/{result.Id.ToString()})";
+                                }
+                        }
+                        var builder = new EmbedBuilder()
+                             .WithTitle("Nuclear Launch Codes")
+                             .WithColor(new Color(33, 176, 252))
+                             .WithDescription(description)
+                             .WithCurrentTimestamp();
+
+                        var embed = builder.Build();
+                        await Context.Channel.SendMessageAsync(null, false, embed);
+                    }
+                    catch (Exception e)
+                    {
+                        await ReplyAsync("Something went wrong with the nukes");
+                    }
                     return;
                 }
                 await ReplyAsync("You can't leak military secrets here!");
@@ -158,7 +195,7 @@ namespace Bibs_Discord_dotNET.Modules
                     ThumbnailUrl = anime.Attributes.PosterImage.Medium,
                     Description = anime.Attributes.Synopsis ?? "-"
                 }.Build();
-                
+
                 await ReplyAsync("", embed: embed);
             }
             catch (Exception e)
