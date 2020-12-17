@@ -69,6 +69,7 @@ namespace Bibs_Discord_dotNET
                         .AddSingleton<Images>()
                         .AddSingleton<Ranks>()
                         .AddSingleton<Muteds>()
+                        .AddSingleton<Limits>()
                         .AddSingleton<AutoRoles>()
                         .AddSingleton<ApiService>()
                         .AddSingleton<ServerHelper>();

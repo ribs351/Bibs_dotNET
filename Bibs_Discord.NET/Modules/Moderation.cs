@@ -24,10 +24,11 @@ namespace Bibs_Discord.NET.Modules
         private readonly Ranks _ranks;
         private readonly Muteds _muteds;
         private readonly AutoRoles _autoRoles;
+        private readonly Limits _limits;
 
         private readonly GuildPermissions mutedPerms = new GuildPermissions(sendMessages: false);
 
-        public Moderation(Muteds muteds, ServerHelper serverHelper, ILogger<Moderation> logger, Servers servers, Ranks ranks, AutoRoles autoRoles)
+        public Moderation(Limits limits, Muteds muteds, ServerHelper serverHelper, ILogger<Moderation> logger, Servers servers, Ranks ranks, AutoRoles autoRoles)
         {
             _serverHelper = serverHelper;
             _logger = logger;
@@ -35,6 +36,7 @@ namespace Bibs_Discord.NET.Modules
             _ranks = ranks;
             _autoRoles = autoRoles;
             _muteds = muteds;
+            _limits = limits;
         }
 
         public async Task MutePerms(SocketGuildUser user)
@@ -358,7 +360,7 @@ namespace Bibs_Discord.NET.Modules
                 return;
             }
 
-            if (!ranks.Any(x => x.Id == role.Id))
+            if (ranks.All(x => x.Id != role.Id))
             {
                 await Context.Channel.TriggerTypingAsync();
                 await Context.Channel.SendErrorAsync("Ranks", "That role is not a rank yet!");
@@ -451,7 +453,7 @@ namespace Bibs_Discord.NET.Modules
                 return;
             }
 
-            if (autoRoles.Any(x => x.Id == role.Id))
+            if (autoRoles.All(x => x.Id != role.Id))
             {
                 await _autoRoles.RemoveAutoRoleAsync(Context.Guild.Id, role.Id);
                 await Context.Channel.SendSuccessAsync("Auto Roles", $"The role {role.Mention} has been removed from the autoroles!");
@@ -548,6 +550,7 @@ namespace Bibs_Discord.NET.Modules
         {
             await ((Context.Channel as SocketTextChannel).ModifyAsync(x => x.SlowModeInterval = interval));
             await Context.Channel.SendSuccessAsync("Slowmode", $"Channel's slowmode interval has been adjusted to {interval} seconds!");
+            await _serverHelper.SendLogAsync(Context.Guild, "Situation Log", $"{Context.User.Mention} sets the slowmode of {Context.Guild.GetTextChannel(Context.Channel.Id).Mention} to {interval} seconds!");
         }
         [Command("raid", RunMode = RunMode.Async)]
         [Summary("Toggles raid mode, kicks people that recently joined during the last 30 minutes, use when your server is under attack")]
@@ -559,15 +562,18 @@ namespace Bibs_Discord.NET.Modules
             try 
             {
                 await _servers.ModifyRaidAsync(Context.Guild.Id);
+                await _serverHelper.SendLogAsync(Context.Guild, "Situation Log", $"{Context.User.Mention} activated Raid Mode! Prepare the defenses!");
                 await Context.Channel.SendSuccessAsync("Raid Mode", $"Successfully sets the raid mode to {fetchedServerRaid.ToString()}");
                 while (fetchedServerRaid == true)
                 {
+                    var invites = await Context.Guild.GetInvitesAsync();
                     foreach (var user in Context.Guild.Users)
                     {
                         if ((DateTime.Now - user.JoinedAt) < thirtyMinutes)
                         {
                             var channel = await user.GetOrCreateDMChannelAsync();
                             await channel.SendMessageAsync($"You've been kicked from {Context.Guild.Name} as a result of a raid that was detected. If you feel like you shouldn't have got kicked, please feel free to join back.");
+                            await channel.SendMessageAsync(invites.Select(x => x.Url).FirstOrDefault());
                             await user.KickAsync();
                         }
                         else
@@ -582,15 +588,120 @@ namespace Bibs_Discord.NET.Modules
             }
               
         }
+        
+        [Command("togglelimit")]
+        [Summary("Toggles the limited mode, limits the bot to certain channels, make sure to set up the limit channels first!")]
+        [RequireUserPermission(GuildPermission.ManageChannels, ErrorMessage = "You don't have permission to do that!")]
+        public async Task EnableLimits()
+        {
+            var hasLimitChannels = await _limits.GetLimitsAsync(Context.Guild.Id);
+            if (hasLimitChannels.Count == 0)
+            {
+                await Context.Channel.TriggerTypingAsync();
+                await Context.Channel.SendErrorAsync("Channel Limits", "There has not been any limit channel(s)!\nTo prevent lockouts, add some limit channels using the addlimit command!");
+                return;
+            }
+            await Context.Channel.TriggerTypingAsync();
+            await _servers.ModifyHasLimitAsync(Context.Guild.Id);
+            var fetchedServerLimit = await _servers.GetFilterAsync(Context.Guild.Id);
+            await _serverHelper.SendLogAsync(Context.Guild, "Situation Log", $"{Context.User.Mention} enabled limited mode!");
+            await Context.Channel.SendSuccessAsync("Channel Limits", $"Successfully set the bot's channel limits to {fetchedServerLimit.ToString()}");
+        }
+        [Command("addlimit", RunMode = RunMode.Async)]
+        [Summary("Add a new channel to limited channel list, limited channels are channels that the bot can only be used in if the server has limited the bot")]
+        [RequireUserPermission(Discord.GuildPermission.Administrator, ErrorMessage = "You don't have permission to do that!")]
+        [RequireBotPermission(Discord.GuildPermission.ManageRoles)]
+        public async Task AddLimit(string value = null)
+        {
+            await Context.Channel.TriggerTypingAsync();
+            if (value != null)
+            {
+                if (!MentionUtils.TryParseChannel(value, out ulong parsedId))
+                {
+                    await Context.Channel.SendErrorAsync("Channel Limits", "Please pass in a valid channel!");
+                    return;
+                }
+                var parsedChannel = Context.Guild.GetTextChannel(parsedId);
+                if (parsedChannel == null)
+                {
+                    await Context.Channel.SendErrorAsync("Channel Limits", "Please pass in a valid channel!");
+                    return;
+                }
+                await _limits.AddLimitAsync(Context.Guild.Id, parsedId);
+                await _serverHelper.SendLogAsync(Context.Guild, "Situation Log", $"{Context.User.Mention} added {parsedChannel.Mention} to the list of limited channels!");
+                await Context.Channel.SendSuccessAsync("Channel Limits", $"Successfully limited the bot to {parsedChannel.Mention}.");
+            }
+        }
+        [Command("dellimit", RunMode = RunMode.Async)]
+        [Summary("Removes a limit channel, make sure to disable channel limits (togglelimit) before you do this!")]
+        [RequireUserPermission(GuildPermission.Administrator, ErrorMessage = "You don't have permission to do that!")]
+        [RequireBotPermission(GuildPermission.ManageRoles)]
+        public async Task DelLimit(string value = null)
+        {
+            await Context.Channel.TriggerTypingAsync();
+            var limits = await _limits.GetLimitsAsync(Context.Guild.Id);
+            var hasLimit = await _servers.GetHasLimitAsync(Context.Guild.Id);
+            try 
+            {
+                if (hasLimit == true)
+                {
+                    await ReplyAsync("You can't delete limit channel while limit mode is active!");
+                    return;
+                }
+
+                if (value != null)
+                {
+                    if (!MentionUtils.TryParseChannel(value, out ulong parsedId))
+                    {
+                        await Context.Channel.SendErrorAsync("Channel Limits", "Please pass in a valid channel!");
+                        return;
+                    }
+                    var parsedChannel = Context.Guild.GetTextChannel(parsedId);
+                    if (parsedChannel == null)
+                    {
+                        await Context.Channel.SendErrorAsync("Channel Limits", "Please pass in a valid channel!");
+                        return;
+                    }
+                    if (limits.All(x => x.ChannelId != parsedChannel.Id))
+                    {
+                        await Context.Channel.TriggerTypingAsync();
+                        await Context.Channel.SendErrorAsync("Channel Limits", "That channel is not a limited channel!");
+                        return;
+                    }
+
+                    await _limits.RemoveLimitAsync(Context.Guild.Id, parsedId);
+                    await _serverHelper.SendLogAsync(Context.Guild, "Situation Log", $"{Context.User.Mention} removed {parsedChannel.Mention} from the limited channel list!");
+                    await Context.Channel.SendSuccessAsync("Channel Limits", $"Successfully removed {parsedChannel.Mention} from the limited channels.");
+                }
+            }
+            catch (Exception e) 
+            {
+                await Context.Channel.SendErrorAsync("Error", $"Something went wrong: ```{e.ToString()}```");
+            }
+            
+        }
+        
         [Command("filter")]
-        [Summary("Setup the word filter module")]
+        [Summary("Toggles the word filter module")]
         [RequireUserPermission(GuildPermission.ManageChannels, ErrorMessage = "You don't have permission to do that!")]
         public async Task Filter()
         {
             await Context.Channel.TriggerTypingAsync();
             await _servers.ModifyFilterAsync(Context.Guild.Id);
             var fetchedServerFilter = await _servers.GetFilterAsync(Context.Guild.Id);
+            await _serverHelper.SendLogAsync(Context.Guild, "Situation Log", $"{Context.User.Mention} sets the word filter to {fetchedServerFilter.ToString()}!");
             await Context.Channel.SendSuccessAsync("Word Filter", $"Successfully set the server's word filter to {fetchedServerFilter.ToString()}");
+        }
+        [Command("noweeb")]
+        [Summary("Toggles the blacklisting of weeb commands")]
+        [RequireUserPermission(GuildPermission.ManageChannels, ErrorMessage = "You don't have permission to do that!")]
+        public async Task NoWeeb()
+        {
+            await Context.Channel.TriggerTypingAsync();
+            await _servers.ModifyNoWeebAsync(Context.Guild.Id);
+            var fetchedServerWeebBlacklist = await _servers.GetNoWeebAsync(Context.Guild.Id);
+            await _serverHelper.SendLogAsync(Context.Guild, "Situation Log", $"{Context.User.Mention} sets the server's no-weeb status to {fetchedServerWeebBlacklist.ToString()}!");
+            await Context.Channel.SendSuccessAsync("Weeb Commands Blacklisting", $"Successfully set the server's weeb commands blacklisting to {fetchedServerWeebBlacklist.ToString()}");
         }
 
         [Command("logs")]

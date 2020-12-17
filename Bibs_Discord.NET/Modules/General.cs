@@ -212,7 +212,7 @@ namespace Bibs_Discord.NET.Modules
                 role = roleByName;
             }
 
-            if (!ranks.Any(x => x.Id == role.Id))
+            if (ranks.All(x => x.Id != role.Id))
             {
                 await Context.Channel.TriggerTypingAsync();
                 await Context.Channel.SendErrorAsync("Ranks", "That rank doesn't exist!");

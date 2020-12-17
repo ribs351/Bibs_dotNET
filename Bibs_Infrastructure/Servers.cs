@@ -187,5 +187,67 @@ namespace Bibs_Infrastructure
                 .FindAsync(id);
             return await Task.FromResult(server.Raid);
         }
+        public async Task ModifyNoWeebAsync(ulong id)
+        {
+            var server = await _context.Servers
+                .FindAsync(id);
+
+            if (server == null)
+                _context.Add(new Server { Id = id, NoWeeb = true });
+            else
+                server.NoWeeb = !server.NoWeeb;
+
+            await _context.SaveChangesAsync();
+        }
+        //call this method everytime bibs joins a new server otherwise bibs gets a seizure
+        public async Task ClearNoWeebAsync(ulong id)
+        {
+            var server = await _context.Servers
+                .FindAsync(id);
+
+            if (server == null)
+                _context.Add(new Server { Id = id, NoWeeb = false }); //when bibs joins a new server, sets this to false by default
+            else
+                server.NoWeeb = false; //keep setting this to false if the bot was re-added to a server
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> GetNoWeebAsync(ulong id)
+        {
+            var server = await _context.Servers
+                .FindAsync(id);
+            return await Task.FromResult(server.NoWeeb);
+        }
+        public async Task ModifyHasLimitAsync(ulong id)
+        {
+            var server = await _context.Servers
+                .FindAsync(id);
+
+            if (server == null)
+                _context.Add(new Server { Id = id, HasLimit = true });
+            else
+                server.HasLimit = !server.HasLimit;
+
+            await _context.SaveChangesAsync();
+        }
+        //call this method everytime bibs joins a new server otherwise bibs gets a seizure
+        public async Task ClearHasLimitAsync(ulong id)
+        {
+            var server = await _context.Servers
+                .FindAsync(id);
+
+            if (server == null)
+                _context.Add(new Server { Id = id, HasLimit = false }); //when bibs joins a new server, sets this to false by default
+            else
+                server.HasLimit = false; //keep setting this to false if the bot was re-added to a server
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> GetHasLimitAsync(ulong id)
+        {
+            var server = await _context.Servers
+                .FindAsync(id);
+            return await Task.FromResult(server.HasLimit);
+        }
     }
 }

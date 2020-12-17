@@ -12,18 +12,26 @@ using Kitsu.Anime;
 using Kitsu.Manga;
 using NHentaiAPI;
 using System.Linq;
+using Bibs_Infrastructure;
+using Discord.WebSocket;
 
 namespace Bibs_Discord_dotNET.Modules
 {
     public class Weeb : ModuleBase<SocketCommandContext>
     {
         public static bool NNN = false;
+        private readonly Servers _servers;
+        public Weeb(Servers servers)
+        {
+            _servers = servers;
+        }
 
         [Command("neko", RunMode = RunMode.Async)]
         [Summary("Get a random catgirl")]
         [Cooldown(5)]
         public async Task CatGirl()
         {
+
             var client = new HttpClient();
             var result = await client.GetStringAsync("https://nekos.moe/api/v1/random/image?count=1&nsfw=false");
             if (result == null)
@@ -32,34 +40,31 @@ namespace Bibs_Discord_dotNET.Modules
                 return;
             }
             var neko = JsonConvert.DeserializeObject<dynamic>(result);
-            if ((Context.Channel as IDMChannel) != null)
+            var guild = (Context.Channel as SocketTextChannel)?.Guild;
+            try
             {
-                var builder = new EmbedBuilder()
-                .WithColor(new Color(33, 176, 252))
-                .WithTitle("Neko")
-                .WithUrl($"https://nekos.moe/image/{neko.images[0].id.ToString()}")
-                .WithImageUrl($"https://nekos.moe/image/{neko.images[0].id.ToString()}");
-                await Context.Channel.TriggerTypingAsync();
-                await ReplyAsync(embed: builder.Build());
-                return;
+                var guildHasWeebBlackist = _servers.GetNoWeebAsync(guild.Id).Result;
+                if (guildHasWeebBlackist == true)
+                {
+                    var newTask = new Task(async () => await HandleWeebBlacklist());
+                    newTask.Start();
+                    return;
+                }
             }
-            else if ((Context.Channel as ITextChannel).IsNsfw)
+            catch (Exception e)
             {
-                var builder = new EmbedBuilder()
-                  .WithColor(new Color(33, 176, 252))
-                  .WithTitle("Neko")
-                  .WithUrl($"https://nekos.moe/image/{neko.images[0].id.ToString()}")
-                  .WithImageUrl($"https://nekos.moe/image/{neko.images[0].id.ToString()}");
-                await Context.Channel.TriggerTypingAsync();
-                await ReplyAsync(embed: builder.Build());
-                return;
+                await _servers.ClearFilterAsync(guild.Id);
+                await Context.Channel.SendErrorAsync("Error", "Something went wrong, please try again, if the bot is unresponsive, contact Ribs#8205 on discord.");
             }
-            else
-            {
-                await Context.Channel.TriggerTypingAsync();
-                await Context.Channel.SendErrorAsync("Weeb Module", "This command is inappropriate to use here, use it in nsfw or in DMs!");
-                return;
-            }
+
+            var builder = new EmbedBuilder()
+              .WithColor(new Color(33, 176, 252))
+              .WithTitle("Neko")
+              .WithUrl($"https://nekos.moe/image/{neko.images[0].id.ToString()}")
+              .WithImageUrl($"https://nekos.moe/image/{neko.images[0].id.ToString()}");
+            await Context.Channel.TriggerTypingAsync();
+            await ReplyAsync(embed: builder.Build());
+            return;
 
         }
         [Command("hneko", RunMode = RunMode.Async)]
@@ -77,6 +82,23 @@ namespace Bibs_Discord_dotNET.Modules
             var neko = JsonConvert.DeserializeObject<dynamic>(result);
             if ((Context.Channel as IDMChannel) != null)
             {
+                var guild = (Context.Channel as SocketTextChannel)?.Guild;
+                try
+                {
+                    var guildHasWeebBlackist = _servers.GetNoWeebAsync(guild.Id).Result;
+                    if (guildHasWeebBlackist == true)
+                    {
+                        var newTask = new Task(async () => await HandleWeebBlacklist());
+                        newTask.Start();
+                        return;
+                    }
+                }
+                catch (Exception e)
+                {
+                    await _servers.ClearFilterAsync(guild.Id);
+                    await Context.Channel.SendErrorAsync("Error", "Something went wrong, please try again, if the bot is unresponsive, contact Ribs#8205 on discord.");
+                }
+
                 var builder = new EmbedBuilder()
                 .WithColor(new Color(33, 176, 252))
                 .WithTitle("NSFW Neko")
@@ -149,6 +171,23 @@ namespace Bibs_Discord_dotNET.Modules
                 }
                 else if ((Context.Channel as ITextChannel).IsNsfw)
                 {
+                    var guild = (Context.Channel as SocketTextChannel)?.Guild;
+                    try
+                    {
+                        var guildHasWeebBlackist = _servers.GetNoWeebAsync(guild.Id).Result;
+                        if (guildHasWeebBlackist == true)
+                        {
+                            var newTask = new Task(async () => await HandleWeebBlacklist());
+                            newTask.Start();
+                            return;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        await _servers.ClearFilterAsync(guild.Id);
+                        await Context.Channel.SendErrorAsync("Error", "Something went wrong, please try again, if the bot is unresponsive, contact Ribs#8205 on discord.");
+                    }
+
                     try
                     {
                         foreach (var result in results)
@@ -235,6 +274,12 @@ namespace Bibs_Discord_dotNET.Modules
             await Context.Channel.TriggerTypingAsync();
             await ReplyAsync($"Warning: No Nut November is now: {NNN.ToString()}!");
 
+        }
+        private async Task HandleWeebBlacklist()
+        {
+            await Context.Channel.TriggerTypingAsync();
+            await Context.Channel.SendErrorAsync("Weeb Module", "This command is blacklisted on this server!");
+            return;
         }
     }
 }

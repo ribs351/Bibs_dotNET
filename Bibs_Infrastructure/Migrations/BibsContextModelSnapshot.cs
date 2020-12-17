@@ -33,6 +33,23 @@ namespace Bibs_Infrastructure.Migrations
                     b.ToTable("AutoRoles");
                 });
 
+            modelBuilder.Entity("Bibs_Infrastructure.Limit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<ulong>("ChannelId")
+                        .HasColumnType("bigint unsigned");
+
+                    b.Property<ulong>("ServerId")
+                        .HasColumnType("bigint unsigned");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Limits");
+                });
+
             modelBuilder.Entity("Bibs_Infrastructure.Muted", b =>
                 {
                     b.Property<int>("Id")
@@ -79,8 +96,14 @@ namespace Bibs_Infrastructure.Migrations
                     b.Property<bool>("Filter")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<bool>("HasLimit")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<ulong>("Logs")
                         .HasColumnType("bigint unsigned");
+
+                    b.Property<bool>("NoWeeb")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Prefix")
                         .HasColumnType("longtext CHARACTER SET utf8mb4");

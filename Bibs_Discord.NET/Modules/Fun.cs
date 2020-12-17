@@ -361,28 +361,55 @@ namespace Bibs_Discord.NET.Modules
             }          
             try
             {
-                String reason = "";
-                int bullet = new Random().Next(0, 5);
+                await Context.Channel.TriggerTypingAsync();
+                var message = await Context.Channel.SendMessageAsync($"{Context.User.Username} loads the bullet and spins the cylinder...");
+                await Task.Delay(2000);
+                await Context.Channel.TriggerTypingAsync();
+                await message.ModifyAsync(x =>
+                {
+                    x.Content = $"{Context.User.Username} puts the gun up to their head and pulls the trigger...";
+                });
+                int bullet = new Random().Next(0, 6); //1/7th chance to die because Bibs now uses the Nagant revolver
                 if (bullet == 1)
                 {
                     var channel = await Context.User.GetOrCreateDMChannelAsync();
-                    await channel.SendMessageAsync(reason == null ? $"You've been muted in {Context.Guild.Name} for 2 minutes. You've died in a game of Russian Roulette." : $"You've been muted in {Context.Guild.Name} for 2 minutes. You've died in a game of Russian Roulette. Try again if you dare.");
+                    await channel.SendMessageAsync($"You've been muted in {Context.Guild.Name} for 2 minutes. You've died in a game of Russian Roulette. Try again if you dare.");
                     await _muteds.AddMutedAsync(Context.Guild.Id, Context.User.Id);
                     var user = (Context.User as SocketGuildUser);
                     await Task.Delay(2000);
                     await RRMute(user);
                     await Context.Channel.TriggerTypingAsync();
-                    await ReplyAsync(reason == null ? $"The chamber was loaded! {Context.User.Username} shot themself in the head!" : $"The chamber was loaded! {Context.User.Username} shot themself in the head!");
-
+                    await message.ModifyAsync(x =>
+                    {
+                        x.Content = "BANG!";
+                    });
+                    await Task.Delay(500);
+                    await Context.Channel.TriggerTypingAsync();
+                    await message.ModifyAsync(x=>
+                    {
+                        x.Content = $"The chamber was loaded! {Context.User.Username} shot themself in the head!";
+                    });
                     await Task.Delay(120000);
                     await RRUnMute(user);
                     await channel.SendMessageAsync($"You've been revived in {Context.Guild.Name}");
                     await _muteds.RemoveMutedAsync(Context.Guild.Id, Context.User.Id);
+                    return;
                 }
                 else
                 {
                     await Context.Channel.TriggerTypingAsync();
-                    await ReplyAsync(reason == null ? $"The chamber was empty! {Context.User.Username} has survived!" : $"The chamber was empty! {Context.User.Username} has survived!");
+                    await Task.Delay(1000);
+                    await message.ModifyAsync(x =>
+                    {
+                        x.Content = "*clicks*";
+                    });
+                    await Task.Delay(500);
+                    await Context.Channel.TriggerTypingAsync();
+                    await message.ModifyAsync(x=>
+                    {
+                        x.Content = $"The chamber was empty! {Context.User.Username} has survived!";
+                    });
+                    return;
                 }
             }
             catch (Exception e)
@@ -390,6 +417,73 @@ namespace Bibs_Discord.NET.Modules
                 await Context.Channel.SendErrorAsync("Russian Roulette", $"Something went wrong:```fix\n{e.ToString()}```");
             }
             
+
+        }
+        [Command("hrr", RunMode = RunMode.Async)]
+        [Summary("Play a game of hardcore russian roulette, you'll be kicked if you lose!")]
+        [Cooldown(5)]
+        public async Task HRR()
+        {
+            if ((Context.Channel as IDMChannel) != null)
+            {
+                await Context.Channel.SendErrorAsync("Hardcore Russian Roulette", "This command can only be used in a server, where the stakes are present.");
+                return;
+            }
+            try
+            {
+                await Context.Channel.TriggerTypingAsync();
+                var message = await Context.Channel.SendMessageAsync($"{Context.User.Username} loads the bullet and spins the cylinder...");
+                await Task.Delay(2000);
+                await Context.Channel.TriggerTypingAsync();
+                await message.ModifyAsync(x =>
+                {
+                    x.Content = $"{Context.User.Username} puts the gun up to their head and pulls the trigger...";
+                });
+                int bullet = new Random().Next(0, 6);
+                var invites = await Context.Guild.GetInvitesAsync();
+                if (bullet == 1)
+                {
+                    var channel = await Context.User.GetOrCreateDMChannelAsync();
+                    await channel.SendMessageAsync($"You've been kicked from {Context.Guild.Name}. You've died in a game of Russian Roulette. Join the server again if you dare.");
+                    await channel.SendMessageAsync(invites.Select(x => x.Url).FirstOrDefault());
+                    var user = (Context.User as SocketGuildUser);
+                    await Task.Delay(2000);
+                    await Context.Channel.TriggerTypingAsync();
+                    await message.ModifyAsync(x =>
+                    {
+                        x.Content = "BANG!";
+                    });
+                    await Task.Delay(500);
+                    await Context.Channel.TriggerTypingAsync();
+                    await message.ModifyAsync(x =>
+                    {
+                        x.Content = $"The chamber was loaded! {Context.User.Username} shot themself in the head!";
+                    });
+                    await user.KickAsync();
+                    return;
+                }
+                else
+                {
+                    await Context.Channel.TriggerTypingAsync();
+                    await Task.Delay(1000);
+                    await message.ModifyAsync(x =>
+                    {
+                        x.Content = "*clicks*";
+                    });
+                    await Task.Delay(500);
+                    await Context.Channel.TriggerTypingAsync();
+                    await message.ModifyAsync(x =>
+                    {
+                        x.Content = $"The chamber was empty! {Context.User.Username} has survived!";
+                    });
+                    return;
+                }
+            }
+            catch (Exception e)
+            {
+                await Context.Channel.SendErrorAsync("Russian Roulette", $"Something went wrong:```fix\n{e.ToString()}```");
+            }
+
 
         }
         [Command("rps")]

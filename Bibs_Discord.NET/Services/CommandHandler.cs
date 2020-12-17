@@ -31,8 +31,9 @@ namespace Bibs_Discord_dotNET.Services
         private readonly ServerHelper _serverHelper;
         private readonly LavaNode _lavaNode;
         private readonly ILogger<CommandHandler> _logger;
+        private readonly Limits _limits;
 
-        public CommandHandler(ILogger<CommandHandler> logger, IServiceProvider provider, DiscordSocketClient client, CommandService service, IConfiguration config, Servers servers, Images images, ServerHelper serverHelper, LavaNode lavaNode)
+        public CommandHandler(Limits limits, ILogger<CommandHandler> logger, IServiceProvider provider, DiscordSocketClient client, CommandService service, IConfiguration config, Servers servers, Images images, ServerHelper serverHelper, LavaNode lavaNode)
         {
             _provider = provider;
             _client = client;
@@ -43,6 +44,7 @@ namespace Bibs_Discord_dotNET.Services
             _serverHelper = serverHelper;
             _lavaNode = lavaNode;
             _logger = logger;
+            _limits = limits;
         }
 
         public override async Task InitializeAsync(CancellationToken cancellationToken)
@@ -54,18 +56,19 @@ namespace Bibs_Discord_dotNET.Services
             _client.Connected += OnStartUp;
             _client.UserIsTyping += OnUserIsTyping;
             _client.LeftGuild += OnLeftGuild;
-            //_client.MessageDeleted += OnMessageDeleted;
+            _client.MessageDeleted += OnMessageDeleted;
             _lavaNode.OnTrackEnded += OnTrackEnded;
 
             _service.CommandExecuted += OnCommandExecuted;
             await _service.AddModulesAsync(Assembly.GetEntryAssembly(), _provider);
         }
-        /*
-        private async Task OnMessageDeleted(Cacheable<IMessage, ulong> arg1, ISocketMessageChannel arg2)
+        
+        private async Task OnMessageDeleted(Cacheable<IMessage, ulong> msg, ISocketMessageChannel channel)
         {
-            
+            var guild = (channel as SocketTextChannel)?.Guild;
+            await _serverHelper.SendLogAsync(guild, "Situation Log", $"Message Deleted: {msg.Value.Content}.");
         }
-        */
+        
 
         private async Task OnLeftGuild(SocketGuild arg)
         {
@@ -171,6 +174,8 @@ namespace Bibs_Discord_dotNET.Services
             //calls this method whenever bibs joins a new server so bibs doesn't do a die
             await _servers.ClearFilterAsync(arg.Id);
             await _servers.ClearRaidAsync(arg.Id);
+            await _servers.ClearNoWeebAsync(arg.Id);
+            await _servers.ClearHasLimitAsync(arg.Id);
             await _client.SetGameAsync($"over {_client.Guilds.Count} servers!", null, ActivityType.Watching);
         }
         private async Task HandleFilter(SocketMessage arg)
@@ -322,7 +327,7 @@ namespace Bibs_Discord_dotNET.Services
 
             var firstTask = new Task(async () => await HandleAutomatedResponse(arg));
             firstTask.Start();
-            
+
             var argPos = 0;
             string prefix ="!";
             if (guild != null) 
@@ -340,7 +345,26 @@ namespace Bibs_Discord_dotNET.Services
                     await _servers.ClearFilterAsync(guild.Id);
                     await message.Channel.SendErrorAsync("Error", "Something went wrong, please try again, if the bot is unresponsive, contact Ribs#8205 on discord.");
                 }
-                
+                try
+                {
+                    var guildHasLimit = _servers.GetHasLimitAsync(guild.Id).Result;
+                    if (guildHasLimit == true)
+                    {
+                        var limits = await _limits.GetLimitsAsync(guild.Id);
+                        if (limits.Exists(x => x.ChannelId == arg.Channel.Id))
+                        {
+                            goto next;//forgive me lord for I've used goto :c
+                        }
+                        else
+                            return;
+                    }
+                }
+                catch (Exception e)
+                {
+                    await _servers.ClearHasLimitAsync(guild.Id);
+                    await message.Channel.SendErrorAsync("Error", "Something went wrong, please try again, if the bot is unresponsive, contact Ribs#8205 on discord.");
+                }
+            next:
                 prefix = await _servers.GetGuildPrefix((message.Channel as SocketGuildChannel).Guild.Id) ?? "!";
                 if (!message.HasStringPrefix(prefix, ref argPos) && !message.HasMentionPrefix(_client.CurrentUser, ref argPos)) return;
 
