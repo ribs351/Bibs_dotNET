@@ -837,7 +837,7 @@ namespace Bibs_Discord.NET.Modules
         }
         [Command("leaveguild")]
         [Summary("Forces the bot to leave a guild")]
-        [RequireOwner]
+        [RequireOwner(ErrorMessage = "Hey! You're not Ribs!")]
         public async Task LeaveGuild(ulong guildId)
         {
             SocketGuild guild = Context.Client.GetGuild(guildId);
@@ -853,7 +853,7 @@ namespace Bibs_Discord.NET.Modules
         }
         [Command("kill")]
         [Summary("Stops Bibs to adapt to any new changes in code.")]
-        [RequireOwner]
+        [RequireOwner(ErrorMessage = "Hey! You're not Ribs!")]
         public async Task kill()
         {
             _logger.LogDebug("Battle Control Terminated.");

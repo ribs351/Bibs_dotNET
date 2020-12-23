@@ -41,6 +41,7 @@ namespace Bibs_Discord.NET.Modules
             //there's probably better ways of implementing this but I'm not at that level yet 
             //maybe one day I'll be able to use regular expressions without summoning the ancient one
             //but right now this is the best that I can do
+            //yknow i could have used switch cases... Ahh well...
             //also cringe
             //very cringe actually
             //ahh man, this really be a bruh moment
@@ -95,6 +96,80 @@ namespace Bibs_Discord.NET.Modules
             else if ((question.IndexOf("ryo saeba", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
             {
                 output += "idk, i think Ryo Saeba is a pervert";
+            }
+            else if ((question.IndexOf("horny", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
+            {
+                output += "You are horny";
+            }
+            else if ((question.IndexOf("sex", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
+            {
+                output += "No";
+            }
+            else if ((question.IndexOf("how are you", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
+            {
+                output += "Fine til I met you, I guess";
+            }
+            else if ((question.IndexOf("who are you", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
+            {
+                if (Context.User.Id == 225325643246600193)
+                {
+                    output += "You're kidding right? ***YOU*** made me!";
+                }
+                else 
+                {
+                    output += "Who are you? Why are you asking me this?";
+                }
+                
+            }
+            else if ((question.IndexOf("who is the best person here", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
+            {
+                output += "Probably not you";
+            }
+            else if ((question.IndexOf("do you hate me", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
+            {
+                output += "It depends...";
+            }
+            else if ((question.IndexOf("do you love me", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
+            {
+                output += "Wh-Why are you asking me this?!";
+            }
+            else if ((question.IndexOf("where", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
+            {
+                output += "That's not a yes/no question, find that out yourself!";
+            }
+            else if ((question.IndexOf("is ribs nice to you", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
+            {
+                output += "Very!";
+            }
+            else if ((question.IndexOf("do you hate ribs", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
+            {
+                output += "I'm programmed to say no";
+            }
+            else if ((question.IndexOf("how often do you reload", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
+            {
+                output += "199/200";
+            }
+            else if ((question.IndexOf("who made you", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
+            {
+                output += "Ribs#8205";
+            }
+            else if ((question.IndexOf("do you know the meaning behind the numbers", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
+            {
+                output += "Mason does";
+            }
+            else if ((question.IndexOf("numbers", StringComparison.CurrentCultureIgnoreCase) >= 0) == true 
+                && (question.IndexOf("mean", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
+            {
+                output += "It means your mom";
+            }
+            else if ((question.IndexOf("go on a date with me", StringComparison.CurrentCultureIgnoreCase) >= 0) == true
+                || (question.IndexOf("date me", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
+            {
+                output += "N-No!";
+            }
+            else if ((question.IndexOf("can i take you out to dinner", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
+            {
+                output += "You can't!";
             }
             else if ((question.IndexOf("what is the definition of insanity", StringComparison.CurrentCultureIgnoreCase) >= 0) == true
                 || (question.IndexOf("what's the definition of insanity", StringComparison.CurrentCultureIgnoreCase) >= 0) == true

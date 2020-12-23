@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Bibs_Discord_dotNET.Services;
+using Discord.Rest;
 
 namespace Bibs_Discord.NET.Modules
 {
@@ -32,6 +33,26 @@ namespace Bibs_Discord.NET.Modules
         {
             await Context.Channel.TriggerTypingAsync();
             await Context.Channel.SendMessageAsync($"Took me {Context.Client.Latency} ms to think about it, but I'm alive.");
+        }
+
+        [Command("dm")]
+        [Summary("Use bibs to send DMs to a user")]
+        [RequireOwner]
+        public async Task DM(ulong userID, [Remainder] string text)
+        {
+            var user = Context.Client.GetUser(userID);
+            try 
+            {
+                var channel = await user.GetOrCreateDMChannelAsync();
+                await channel.TriggerTypingAsync();
+                await channel.SendMessageAsync(text);
+                await Context.Channel.SendSuccessAsync("DM", "DM sent");
+            }
+            catch (Exception e) 
+            {
+                await Context.Channel.SendErrorAsync("DM", $"Something went wrong: \n```{e.ToString()}```");
+            }
+           
         }
 
         [Command("getbibs")]

@@ -14,6 +14,8 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using Discord.Rest;
+using WikiDotNet;
 
 namespace Bibs_Discord.NET.Modules
 {
@@ -120,7 +122,14 @@ namespace Bibs_Discord.NET.Modules
             await Context.Channel.SendMessageAsync("**Ah, MAN!** This **ReAlLy** be A ***bruh*** moment.");
             return;
         }
-
+        [Command("care?")]
+        [Summary("Used when you don't care")]
+        public async Task Care()
+        {
+            await Context.Channel.TriggerTypingAsync();
+            await Context.Channel.SendMessageAsync("https://cdn.discordapp.com/attachments/382242328695275525/789215840548945920/763515049082880051.png");
+            return;
+        }
         [Command("negative")]
         [Alias("no")]
         [Summary("Use the negative voice command")]
@@ -314,6 +323,31 @@ namespace Bibs_Discord.NET.Modules
                 .WithFooter($"🗨️ {post["num_comments"]} ⬆️ {post["ups"]}");
             await Context.Channel.TriggerTypingAsync();
             await ReplyAsync(embed: builder.Build());
+        }
+        [Command("rotate")]
+        [Summary("Rotate a given text")]
+        [Cooldown(5)]
+        public async Task Rotate([Remainder] string input)
+        {
+            string Normal = "abcdefghijklmnopqrstuvwxyz_,;.?!/\\'";
+            string Rotated = "ɐqɔpǝɟbɥıظʞןɯuodbɹsʇnʌʍxʎz‾'؛˙¿¡/\\,";
+
+            Normal += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            Rotated += "∀qϽᗡƎℲƃHIſʞ˥WNOԀὉᴚS⊥∩ΛMXʎZ";
+
+            Normal += "0123456789";
+            Rotated += "0ƖᄅƐㄣϛ9ㄥ86";
+
+            string newString = "";
+            StringBuilder bld = new StringBuilder();
+            foreach (char c in input)
+            {
+                bld.Append(Normal.Contains(c) ? Rotated[Normal.IndexOf(c)] : c);
+            }
+            newString = bld.ToString();
+
+            await Context.Channel.TriggerTypingAsync();
+            await ReplyAsync(newString);
         }
         [Command("md5", RunMode = RunMode.Async)]
         [Alias("hash")]
@@ -559,5 +593,79 @@ namespace Bibs_Discord.NET.Modules
                 await Context.Channel.SendErrorAsync("Error", $"You've entered {sides}, please try again\nMin: 2 | max: 255!");
             }
         }
+        [Command("wiki", RunMode = RunMode.Async)]
+        [Alias("wikipedia")]
+        [Summary("Searches Wikipedia")]
+        [Cooldown(5)]
+        public async Task Wikipedia([Remainder] string search = "")
+        {
+            if (string.IsNullOrWhiteSpace(search))
+            {
+                await Context.Channel.SendMessageAsync("Search query cannot be empty!");
+                return;
+            }
+
+            await WikiSearch(search, Context.Channel);
+        }
+
+        [Command("wiki", RunMode = RunMode.Async)]
+        [Alias("wikipedia")]
+        [Summary("Searches Wikipedia")]
+        [Cooldown(5)]
+        public async Task Wikipedia(int maxSearchResults = 10, [Remainder] string search = "")
+        {
+            if (string.IsNullOrWhiteSpace(search))
+            {
+                await Context.Channel.SendMessageAsync("Search query cannot be empty!");
+                return;
+            }
+
+            if (maxSearchResults > 10)
+            {
+                await Context.Channel.SendMessageAsync(
+                    $"The max search amount you have put in is too high! It has to be below 10.");
+                return;
+            }
+
+            await WikiSearch(search, Context.Channel, maxSearchResults);
+        }
+
+        private async Task WikiSearch(string search, ISocketMessageChannel channel, int maxSearch = 10)
+        {
+            EmbedBuilder embed = new EmbedBuilder();
+
+            StringBuilder sb = new StringBuilder();
+            embed.WithTitle($"Wikipedia Search '{search}'");
+            embed.WithColor(new Color(33, 176, 252));
+            embed.WithFooter($"Requested by {Context.User}", Context.User.GetAvatarUrl());
+            embed.WithCurrentTimestamp();
+            embed.WithDescription("Searching Wikipedia...");
+
+            RestUserMessage message = await channel.SendMessageAsync("", false, embed.Build());
+
+            WikiSearchResponse response = WikiSearcher.Search(search, new WikiSearchSettings
+            {
+                ResultLimit = maxSearch
+            });
+
+            foreach (WikiSearchResult result in response.Query.SearchResults)
+            {
+                string link =
+                    $"**[{result.Title}]({result.ConstantUrl("en")})** (Words: {result.WordCount})\n{result.Preview}\n\n";
+
+                //There is a character limit of 2048, so let's make sure we don't hit that
+                if (sb.Length >= 2048) continue;
+
+                if (sb.Length + link.Length >= 2048) continue;
+
+                sb.Append(link);
+            }
+
+            embed.WithDescription(sb.ToString());
+            embed.WithCurrentTimestamp();
+
+            await message.ModifyAsync(x => { x.Embed = embed.Build(); });
+        }
+        
     }
 }

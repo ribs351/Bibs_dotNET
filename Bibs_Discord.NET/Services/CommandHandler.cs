@@ -57,16 +57,35 @@ namespace Bibs_Discord_dotNET.Services
             _client.UserIsTyping += OnUserIsTyping;
             _client.LeftGuild += OnLeftGuild;
             _client.MessageDeleted += OnMessageDeleted;
+           // _client.MessageUpdated += OnMessageUpdated;
             _lavaNode.OnTrackEnded += OnTrackEnded;
 
             _service.CommandExecuted += OnCommandExecuted;
             await _service.AddModulesAsync(Assembly.GetEntryAssembly(), _provider);
         }
-        
+        /*
+        private async Task OnMessageUpdated(Cacheable<IMessage, ulong> msgBefore, SocketMessage msgAfter, ISocketMessageChannel channel)
+        {
+            var guild = (channel as SocketTextChannel)?.Guild;
+            var message = await msgBefore.GetOrDownloadAsync();
+            await _serverHelper.SendLogAsync(guild, "Situation Log", $"Message Edited: {msgBefore.Value.Author.Username}#{msgBefore.Value.Author.DiscriminatorValue} edited {message.ToString() ?? "A message was updated, but its content could not be retrieved from cache."}\nTo: {msgAfter.Content.ToString()}.");
+            return;
+
+        }*/
+
         private async Task OnMessageDeleted(Cacheable<IMessage, ulong> msg, ISocketMessageChannel channel)
         {
             var guild = (channel as SocketTextChannel)?.Guild;
-            await _serverHelper.SendLogAsync(guild, "Situation Log", $"Message Deleted: {msg.Value.Content}.");
+            if (msg.Value.Content == null)
+            {
+                await _serverHelper.SendLogAsync(guild, "Situation Log", $"Message Deleted: A message was deleted, but its content could not be retrieved from cache.");
+            }
+            else 
+            {
+                var message = await msg.GetOrDownloadAsync();
+                await _serverHelper.SendLogAsync(guild, "Situation Log", $"Message Deleted: {msg.Value.Author.Username}#{msg.Value.Author.DiscriminatorValue} said {message.ToString()}.");
+                return;
+            }
         }
         
 
@@ -278,10 +297,19 @@ namespace Bibs_Discord_dotNET.Services
                     return;
                 }
             }
+            //yknow i could have used switch case here too
+            //fcken hell
             if ((message.Content.ToLower().Contains("you're flat") || message.Content.ToLower().Contains("you are flat")) && message.Content.ToLower().Contains("bibs"))
             {
                 await message.Channel.TriggerTypingAsync();
                 await message.Channel.SendMessageAsync("I'll murder you!");
+                return;
+            }
+            if ((message.Content.ToLower().Contains("numbers") && message.Content.ToLower().Contains("mean")) && message.Content.ToLower().Contains("bibs"))
+            {
+                await message.Channel.TriggerTypingAsync();
+                await Task.Delay(5000);
+                await message.Channel.SendMessageAsync("...all agents. Our new allies in Cuba have graciously permitted the construction of a new...and permanent...broadcast station within their borders. From now until Project Nova’s initiation, all instructions will be broadcast from the Rusalka.");
                 return;
             }
             if ((message.ToString().IndexOf("hello there", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
@@ -290,6 +318,7 @@ namespace Bibs_Discord_dotNET.Services
                 await message.Channel.SendMessageAsync("GENERAL KENOBI! You are a bold one.");
                 return;
             }
+
             if ((message.ToString().IndexOf("it was never personal", StringComparison.CurrentCultureIgnoreCase) >= 0) == true)
             {
                 await message.Channel.TriggerTypingAsync();
@@ -351,12 +380,10 @@ namespace Bibs_Discord_dotNET.Services
                     if (guildHasLimit == true)
                     {
                         var limits = await _limits.GetLimitsAsync(guild.Id);
-                        if (limits.Exists(x => x.ChannelId == arg.Channel.Id))
+                        if (!limits.Exists(x => x.ChannelId == arg.Channel.Id))
                         {
-                            goto next;//forgive me lord for I've used goto :c
-                        }
-                        else
                             return;
+                        }
                     }
                 }
                 catch (Exception e)
@@ -364,7 +391,6 @@ namespace Bibs_Discord_dotNET.Services
                     await _servers.ClearHasLimitAsync(guild.Id);
                     await message.Channel.SendErrorAsync("Error", "Something went wrong, please try again, if the bot is unresponsive, contact Ribs#8205 on discord.");
                 }
-            next:
                 prefix = await _servers.GetGuildPrefix((message.Channel as SocketGuildChannel).Guild.Id) ?? "!";
                 if (!message.HasStringPrefix(prefix, ref argPos) && !message.HasMentionPrefix(_client.CurrentUser, ref argPos)) return;
 
@@ -395,11 +421,62 @@ namespace Bibs_Discord_dotNET.Services
                     Description = result.ErrorReason.ToString(),
                     Color = Color.Red
                 }
+                .WithFooter("Did you really think I'd fall for that?")
                 .WithCurrentTimestamp();
                 await context.Channel.SendMessageAsync(embed: embed.Build());
                 return;
             }
-
+            if (result.Error == CommandError.BadArgCount)
+            {
+                var embed = new EmbedBuilder
+                {
+                    Author = new EmbedAuthorBuilder
+                    {
+                        Name = $"{context.User.Username}#{context.User.Discriminator}",
+                        IconUrl = context.User.GetAvatarUrl() ?? context.User.GetDefaultAvatarUrl()
+                    },
+                    Description = result.ErrorReason.ToString(),
+                    Color = Color.Red
+                }
+                .WithFooter("You sure everything is ok there?")
+                .WithCurrentTimestamp();
+                await context.Channel.SendMessageAsync(embed: embed.Build());
+                return;
+            }
+            if (result.Error == CommandError.ParseFailed)
+            {
+                var embed = new EmbedBuilder
+                {
+                    Author = new EmbedAuthorBuilder
+                    {
+                        Name = $"{context.User.Username}#{context.User.Discriminator}",
+                        IconUrl = context.User.GetAvatarUrl() ?? context.User.GetDefaultAvatarUrl()
+                    },
+                    Description = result.ErrorReason.ToString(),
+                    Color = Color.Red
+                }
+                .WithFooter("Looks like you're trying something you shouldn't...")
+                .WithCurrentTimestamp();
+                await context.Channel.SendMessageAsync(embed: embed.Build());
+                return;
+            }
+            if (result.Error == CommandError.UnknownCommand)
+            {
+                var embed = new EmbedBuilder
+                {
+                    Author = new EmbedAuthorBuilder
+                    {
+                        Name = $"{context.User.Username}#{context.User.Discriminator}",
+                        IconUrl = context.User.GetAvatarUrl() ?? context.User.GetDefaultAvatarUrl()
+                    },
+                    Description = result.ErrorReason.ToString(),
+                    Color = Color.Red
+                }
+                .WithFooter("What are you trying to do?")
+                .WithCurrentTimestamp();
+                await context.Channel.SendMessageAsync(embed: embed.Build());
+                return;
+            }
             if (command.IsSpecified && !result.IsSuccess) await (context.Channel as ISocketMessageChannel).SendErrorAsync("Error", result.ErrorReason);
         }
     }

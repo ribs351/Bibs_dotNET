@@ -40,47 +40,18 @@ namespace Bibs_Discord_dotNET.Modules
                 return;
             }
             var neko = JsonConvert.DeserializeObject<dynamic>(result);
-            var guild = (Context.Channel as SocketTextChannel)?.Guild;
-            try
+            if ((Context.Channel as IDMChannel) != null)
             {
-                var guildHasWeebBlackist = _servers.GetNoWeebAsync(guild.Id).Result;
-                if (guildHasWeebBlackist == true)
-                {
-                    var newTask = new Task(async () => await HandleWeebBlacklist());
-                    newTask.Start();
-                    return;
-                }
-            }
-            catch (Exception e)
-            {
-                await _servers.ClearFilterAsync(guild.Id);
-                await Context.Channel.SendErrorAsync("Error", "Something went wrong, please try again, if the bot is unresponsive, contact Ribs#8205 on discord.");
-            }
-
-            var builder = new EmbedBuilder()
-              .WithColor(new Color(33, 176, 252))
-              .WithTitle("Neko")
-              .WithUrl($"https://nekos.moe/image/{neko.images[0].id.ToString()}")
-              .WithImageUrl($"https://nekos.moe/image/{neko.images[0].id.ToString()}");
-            await Context.Channel.TriggerTypingAsync();
-            await ReplyAsync(embed: builder.Build());
-            return;
-
-        }
-        [Command("hneko", RunMode = RunMode.Async)]
-        [Summary("Get a random nsfw catgirl")]
-        [Cooldown(5)]
-        public async Task NsfwCatGirl()
-        {
-            var client = new HttpClient();
-            var result = await client.GetStringAsync("https://nekos.moe/api/v1/random/image?count=1&nsfw=true");
-            if (result == null)
-            {
-                await Context.Channel.SendErrorAsync("Neko API", "Something went wrong with the Neko API!");
+                var builder = new EmbedBuilder()
+                .WithColor(new Color(33, 176, 252))
+                .WithTitle("Neko")
+                .WithUrl($"https://nekos.moe/image/{neko.images[0].id.ToString()}")
+                .WithImageUrl($"https://nekos.moe/image/{neko.images[0].id.ToString()}");
+                await Context.Channel.TriggerTypingAsync();
+                await ReplyAsync(embed: builder.Build());
                 return;
             }
-            var neko = JsonConvert.DeserializeObject<dynamic>(result);
-            if ((Context.Channel as IDMChannel) != null)
+            else if ((Context.Channel as ITextChannel) != null)
             {
                 var guild = (Context.Channel as SocketTextChannel)?.Guild;
                 try
@@ -98,7 +69,38 @@ namespace Bibs_Discord_dotNET.Modules
                     await _servers.ClearFilterAsync(guild.Id);
                     await Context.Channel.SendErrorAsync("Error", "Something went wrong, please try again, if the bot is unresponsive, contact Ribs#8205 on discord.");
                 }
+                var builder = new EmbedBuilder()
+                  .WithColor(new Color(33, 176, 252))
+                  .WithTitle("NSFW Neko")
+                  .WithUrl($"https://nekos.moe/image/{neko.images[0].id.ToString()}")
+                  .WithImageUrl($"https://nekos.moe/image/{neko.images[0].id.ToString()}");
+                await Context.Channel.TriggerTypingAsync();
+                await ReplyAsync(embed: builder.Build());
+                return;
+            }
+            else
+            {
+                await Context.Channel.TriggerTypingAsync();
+                await Context.Channel.SendErrorAsync("Weeb Module", "This command is inappropriate to use here, use it in nsfw or in DMs!");
+                return;
+            }
 
+        }
+        [Command("hneko", RunMode = RunMode.Async)]
+        [Summary("Get a random nsfw catgirl")]
+        [Cooldown(5)]
+        public async Task NsfwCatGirl()
+        {
+            var client = new HttpClient();
+            var result = await client.GetStringAsync("https://nekos.moe/api/v1/random/image?count=1&nsfw=true");
+            if (result == null)
+            {
+                await Context.Channel.SendErrorAsync("Neko API", "Something went wrong with the Neko API!");
+                return;
+            }
+            var neko = JsonConvert.DeserializeObject<dynamic>(result);
+            if ((Context.Channel as IDMChannel) != null)
+            {
                 var builder = new EmbedBuilder()
                 .WithColor(new Color(33, 176, 252))
                 .WithTitle("NSFW Neko")
@@ -110,6 +112,22 @@ namespace Bibs_Discord_dotNET.Modules
             }
             else if ((Context.Channel as ITextChannel).IsNsfw)
             {
+                var guild = (Context.Channel as SocketTextChannel)?.Guild;
+                try
+                {
+                    var guildHasWeebBlackist = _servers.GetNoWeebAsync(guild.Id).Result;
+                    if (guildHasWeebBlackist == true)
+                    {
+                        var newTask = new Task(async () => await HandleWeebBlacklist());
+                        newTask.Start();
+                        return;
+                    }
+                }
+                catch (Exception e)
+                {
+                    await _servers.ClearFilterAsync(guild.Id);
+                    await Context.Channel.SendErrorAsync("Error", "Something went wrong, please try again, if the bot is unresponsive, contact Ribs#8205 on discord.");
+                }
                 var builder = new EmbedBuilder()
                   .WithColor(new Color(33, 176, 252))
                   .WithTitle("NSFW Neko")
@@ -132,7 +150,7 @@ namespace Bibs_Discord_dotNET.Modules
         {
             var client = new NHentaiClient();
             var results = (await client.GetSearchPageListAsync(query, 1)).Result;
-            string description = "This message lists all available launch codes:";
+            string description = null;
 
             if (NNN == true)
             {
@@ -154,10 +172,16 @@ namespace Bibs_Discord_dotNET.Modules
                                     description += $"\n[{result.Id.ToString()}](https://nhentai.net/g/{result.Id.ToString()})";
                                 }
                         }
+                        if (description == null)
+                        {
+                            await Context.Channel.SendErrorAsync("Nuclear Launch Codes", "No launch codes available with the given parameter(s)!");
+                            return;
+                        }
                         var builder = new EmbedBuilder()
                              .WithTitle("Nuclear Launch Codes")
                              .WithColor(new Color(33, 176, 252))
-                             .WithDescription(description)
+                             .WithDescription("These codes are armed and dangerous!")
+                             .AddField("Launch codes:", description)
                              .WithCurrentTimestamp();
 
                         var embed = builder.Build();
@@ -198,10 +222,16 @@ namespace Bibs_Discord_dotNET.Modules
                                     description += $"\n[{result.Id.ToString()}](https://nhentai.net/g/{result.Id.ToString()})";
                                 }
                         }
+                         if (description == null)
+                        {
+                            await Context.Channel.SendErrorAsync("Nuclear Launch Codes", "No launch codes available with the given parameter(s)!");
+                            return;
+                        }
                         var builder = new EmbedBuilder()
                              .WithTitle("Nuclear Launch Codes")
                              .WithColor(new Color(33, 176, 252))
-                             .WithDescription(description)
+                             .WithDescription("These codes are armed and dangerous!")
+                             .AddField("Launch codes:", description)
                              .WithCurrentTimestamp();
 
                         var embed = builder.Build();
@@ -267,7 +297,7 @@ namespace Bibs_Discord_dotNET.Modules
         }
         [Command("nnn")]
         [Summary("Activate No Nut November")]
-        [RequireOwner]
+        [RequireOwner(ErrorMessage = "Hey! You're not Ribs!")]
         public async Task NoNutNovember()
         {
             NNN = !NNN;
