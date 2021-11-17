@@ -249,5 +249,36 @@ namespace Bibs_Infrastructure
                 .FindAsync(id);
             return await Task.FromResult(server.HasLimit);
         }
+        public async Task ModifyHasMarkovAsync(ulong id)
+        {
+            var server = await _context.Servers
+                .FindAsync(id);
+
+            if (server == null)
+                _context.Add(new Server { Id = id, HasMarkov = true });
+            else
+                server.HasMarkov = !server.HasMarkov;
+
+            await _context.SaveChangesAsync();
+        }
+        //call this method everytime bibs joins a new server otherwise bibs gets a seizure
+        public async Task ClearHasMarkovAsync(ulong id)
+        {
+            var server = await _context.Servers
+                .FindAsync(id);
+
+            if (server == null)
+                _context.Add(new Server { Id = id, HasMarkov = false }); //when bibs joins a new server, sets this to false by default
+            else
+                server.HasMarkov = false; //keep setting this to false if the bot was re-added to a server
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> GetHasMarkovAsync(ulong id)
+        {
+            var server = await _context.Servers
+                .FindAsync(id);
+            return await Task.FromResult(server.HasMarkov);
+        }
     }
 }

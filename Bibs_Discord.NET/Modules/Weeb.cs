@@ -64,14 +64,14 @@ namespace Bibs_Discord_dotNET.Modules
                         return;
                     }
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     await _servers.ClearFilterAsync(guild.Id);
                     await Context.Channel.SendErrorAsync("Error", "Something went wrong, please try again, if the bot is unresponsive, contact Ribs#8205 on discord.");
                 }
                 var builder = new EmbedBuilder()
                   .WithColor(new Color(33, 176, 252))
-                  .WithTitle("NSFW Neko")
+                  .WithTitle("Neko")
                   .WithUrl($"https://nekos.moe/image/{neko.images[0].id.ToString()}")
                   .WithImageUrl($"https://nekos.moe/image/{neko.images[0].id.ToString()}");
                 await Context.Channel.TriggerTypingAsync();
@@ -123,7 +123,7 @@ namespace Bibs_Discord_dotNET.Modules
                         return;
                     }
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     await _servers.ClearFilterAsync(guild.Id);
                     await Context.Channel.SendErrorAsync("Error", "Something went wrong, please try again, if the bot is unresponsive, contact Ribs#8205 on discord.");
@@ -187,7 +187,7 @@ namespace Bibs_Discord_dotNET.Modules
                         var embed = builder.Build();
                         await Context.Channel.SendMessageAsync(null, false, embed);
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         await ReplyAsync("Something went wrong with the nukes");
                     }
@@ -206,7 +206,7 @@ namespace Bibs_Discord_dotNET.Modules
                             return;
                         }
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         await _servers.ClearFilterAsync(guild.Id);
                         await Context.Channel.SendErrorAsync("Error", "Something went wrong, please try again, if the bot is unresponsive, contact Ribs#8205 on discord.");
@@ -237,7 +237,7 @@ namespace Bibs_Discord_dotNET.Modules
                         var embed = builder.Build();
                         await Context.Channel.SendMessageAsync(null, false, embed);
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         await ReplyAsync("Something went wrong with the nukes");
                     }

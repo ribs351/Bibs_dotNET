@@ -46,13 +46,31 @@ namespace Bibs_Discord.NET.Modules
                 var channel = await user.GetOrCreateDMChannelAsync();
                 await channel.TriggerTypingAsync();
                 await channel.SendMessageAsync(text);
-                await Context.Channel.SendSuccessAsync("DM", "DM sent");
+                await Context.Channel.SendSuccessAsync("DM", $"DM sent to: {userID}");
+                
             }
             catch (Exception e) 
             {
                 await Context.Channel.SendErrorAsync("DM", $"Something went wrong: \n```{e.ToString()}```");
             }
-           
+        }
+
+        [Command("puppet")]
+        [Summary("debug command")]
+        [RequireOwner]
+        public async Task Puppet(ulong guildID, ulong channelID, [Remainder] string text)
+        {
+            var guild = Context.Client.GetGuild(guildID);
+            var channel = guild.GetChannel(channelID) as IMessageChannel;
+            try {
+                await channel.TriggerTypingAsync();
+                await channel.SendMessageAsync(text);
+                await Context.Channel.SendSuccessAsync("Message", $"DM sent to channel: {channelID}");
+            }
+            catch (Exception e)
+            {
+                await Context.Channel.SendErrorAsync("Error", $"Something went wrong: \n```{e.ToString()}```");
+            }
         }
 
         [Command("getbibs")]
@@ -81,12 +99,35 @@ namespace Bibs_Discord.NET.Modules
             if (user == null)
             {
                 await Context.Channel.TriggerTypingAsync();
-                await Context.Channel.SendMessageAsync($"Your avatar is:\n{Context.User.GetAvatarUrl(size: 1024, format: Discord.ImageFormat.Png) ?? Context.User.GetDefaultAvatarUrl()}");
+                var builder = new EmbedBuilder()
+                .WithImageUrl(Context.User.GetAvatarUrl(ImageFormat.Auto, 2048) ?? user.GetDefaultAvatarUrl())
+                .WithColor(new Color(33, 176, 252))
+                .WithTitle("Your avatar is:").WithCurrentTimestamp()
+                .WithFooter(
+                x =>
+                {
+                    x.WithText($"Info | Requested by {Context.User.Username}");
+                    x.WithIconUrl(Context.User.GetAvatarUrl());
+                });
+                var embed = builder.Build();
+                await Context.Channel.SendMessageAsync(null, false, embed);
             }
             else
             {
                 await Context.Channel.TriggerTypingAsync();
-                await Context.Channel.SendMessageAsync($"{user.Username}'s avatar is:\n{user.GetAvatarUrl(size: 1024, format: Discord.ImageFormat.Png) ?? user.GetDefaultAvatarUrl()}");
+                var builder = new EmbedBuilder()
+                .WithImageUrl(user.GetAvatarUrl(ImageFormat.Auto, 2048) ?? user.GetDefaultAvatarUrl())
+                .WithColor(new Color(33, 176, 252))
+                .WithTitle($"{user.Username}'s avatar is:")
+                .WithCurrentTimestamp()
+                .WithFooter(
+                x =>
+                {
+                    x.WithText($"Info | Requested by {Context.User.Username}");
+                    x.WithIconUrl(Context.User.GetAvatarUrl());
+                });
+                var embed = builder.Build();
+                await Context.Channel.SendMessageAsync(null, false, embed);
             }
 
         }

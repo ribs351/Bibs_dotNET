@@ -70,6 +70,7 @@ namespace Bibs_Discord_dotNET
                         .AddSingleton<Ranks>()
                         .AddSingleton<Muteds>()
                         .AddSingleton<Limits>()
+                        .AddSingleton<Markovs>()
                         .AddSingleton<AutoRoles>()
                         .AddSingleton<ApiService>()
                         .AddSingleton<ServerHelper>();

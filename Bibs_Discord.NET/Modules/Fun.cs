@@ -16,6 +16,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Discord.Rest;
 using WikiDotNet;
+using Markov;
 
 namespace Bibs_Discord.NET.Modules
 {
@@ -23,11 +24,13 @@ namespace Bibs_Discord.NET.Modules
     {
         private readonly ILogger<Fun> _logger;
         private readonly Muteds _muteds;
+        private readonly Markovs _markovs;
 
-        public Fun(ILogger<Fun> logger, Muteds muteds)
+        public Fun(Markovs markovs, ILogger<Fun> logger, Muteds muteds)
         {
             _logger = logger;
             _muteds = muteds;
+            _markovs = markovs;
 
         }
         public async Task RRMute(SocketGuildUser user)
@@ -376,8 +379,8 @@ namespace Bibs_Discord.NET.Modules
                 .WithDescription("Go sub to these:")
                 .WithColor(new Color(33, 176, 252))
                 .AddField("The Tactician: ", "https://steamcommunity.com/sharedfiles/filedetails/?id=2165565232")
-                .AddField("El Presidente: ", "TBA")
-                .AddField("The Kingpin: ", "TBA");
+                .AddField("The Spymaster: ", "https://steamcommunity.com/sharedfiles/filedetails/?id=2486104814")
+                .AddField("The Admiral: ", "https://steamcommunity.com/sharedfiles/filedetails/?id=2501858395");
 
             var embed = builder.Build();
             await Context.Channel.TriggerTypingAsync();
@@ -406,12 +409,12 @@ namespace Bibs_Discord.NET.Modules
                 int bullet = new Random().Next(0, 6); //1/7th chance to die because Bibs now uses the Nagant revolver
                 if (bullet == 1)
                 {
-                    var channel = await Context.User.GetOrCreateDMChannelAsync();
-                    await channel.SendMessageAsync($"You've been muted in {Context.Guild.Name} for 2 minutes. You've died in a game of Russian Roulette. Try again if you dare.");
-                    await _muteds.AddMutedAsync(Context.Guild.Id, Context.User.Id);
-                    var user = (Context.User as SocketGuildUser);
-                    await Task.Delay(2000);
-                    await RRMute(user);
+                    //var channel = await Context.User.GetOrCreateDMChannelAsync();
+                    //await channel.SendMessageAsync($"You've been muted in {Context.Guild.Name} for 2 minutes. You've died in a game of Russian Roulette. Try again if you dare.");
+                    //await _muteds.AddMutedAsync(Context.Guild.Id, Context.User.Id);
+                    //var user = (Context.User as SocketGuildUser);
+                    //await Task.Delay(2000);
+                    //await RRMute(user);
                     await Context.Channel.TriggerTypingAsync();
                     await message.ModifyAsync(x =>
                     {
@@ -423,10 +426,10 @@ namespace Bibs_Discord.NET.Modules
                     {
                         x.Content = $"The chamber was loaded! {Context.User.Username} shot themself in the head!";
                     });
-                    await Task.Delay(120000);
-                    await RRUnMute(user);
-                    await channel.SendMessageAsync($"You've been revived in {Context.Guild.Name}");
-                    await _muteds.RemoveMutedAsync(Context.Guild.Id, Context.User.Id);
+                    //await Task.Delay(120000);
+                    //await RRUnMute(user);
+                    //await channel.SendMessageAsync($"You've been revived in {Context.Guild.Name}");
+                    //await _muteds.RemoveMutedAsync(Context.Guild.Id, Context.User.Id);
                     return;
                 }
                 else
@@ -453,11 +456,36 @@ namespace Bibs_Discord.NET.Modules
             
 
         }
+
+        [Command("pp", RunMode = RunMode.Async)]
+        [Summary("Bibs measures your pp")]
+        [Cooldown(5)]
+        public async Task PP()
+        {
+            int size = new Random().Next(0, 8);
+            if (Context.User.Id == 624128266730471444)
+            {
+                await Context.Channel.SendSuccessAsync("PP", $"{Context.User.Username}'s pp looks like:" + $"```8=D```");
+            }
+            string pp = "=";
+            for (int i = 0; i < size; i++)
+            {
+                pp += "=";
+            }
+            await Context.Channel.SendSuccessAsync("PP", $"{Context.User.Username}'s pp looks like:" + $"```8{pp}D```");
+            return;
+        }
+
         [Command("hrr", RunMode = RunMode.Async)]
         [Summary("Play a game of hardcore russian roulette, you'll be kicked if you lose!")]
         [Cooldown(5)]
         public async Task HRR()
         {
+            if (Context.Guild.Id == 217422237563617280)
+            {
+                await Context.Channel.SendErrorAsync("Russian Roulette", "Smash said no hrr on this server.");
+                return;
+            }
             if ((Context.Channel as IDMChannel) != null)
             {
                 await Context.Channel.SendErrorAsync("Hardcore Russian Roulette", "This command can only be used in a server, where the stakes are present.");
@@ -466,20 +494,17 @@ namespace Bibs_Discord.NET.Modules
             try
             {
                 await Context.Channel.TriggerTypingAsync();
-                var message = await Context.Channel.SendMessageAsync($"{Context.User.Username} loads the bullet and spins the cylinder...");
+                var message = await Context.Channel.SendMessageAsync($"{Context.User.Username} loads 3 bullets and spins the cylinder...");
                 await Task.Delay(2000);
                 await Context.Channel.TriggerTypingAsync();
                 await message.ModifyAsync(x =>
                 {
                     x.Content = $"{Context.User.Username} puts the gun up to their head and pulls the trigger...";
                 });
-                int bullet = new Random().Next(0, 6);
+                int bullet = new Random().Next(0, 2);
                 var invites = await Context.Guild.GetInvitesAsync();
                 if (bullet == 1)
                 {
-                    var channel = await Context.User.GetOrCreateDMChannelAsync();
-                    await channel.SendMessageAsync($"You've been kicked from {Context.Guild.Name}. You've died in a game of Russian Roulette. Join the server again if you dare.");
-                    await channel.SendMessageAsync(invites.Select(x => x.Url).FirstOrDefault());
                     var user = (Context.User as SocketGuildUser);
                     await Task.Delay(2000);
                     await Context.Channel.TriggerTypingAsync();
@@ -489,12 +514,27 @@ namespace Bibs_Discord.NET.Modules
                     });
                     await Task.Delay(500);
                     await Context.Channel.TriggerTypingAsync();
-                    await message.ModifyAsync(x =>
+                    if (user.Hierarchy > Context.Guild.CurrentUser.Hierarchy || user.Id == 502023592083718145)
                     {
-                        x.Content = $"The chamber was loaded! {Context.User.Username} shot themself in the head!";
-                    });
-                    await user.KickAsync();
-                    return;
+                        await message.ModifyAsync(x =>
+                        {
+                            x.Content = $"The gun fired! But it bounced off of {Context.User.Username}'s head! Their skull is just too thick";
+                        });
+                        return;
+                    }
+                    else 
+                    {
+                        var channel = await Context.User.GetOrCreateDMChannelAsync();
+                        await channel.SendMessageAsync($"You've been kicked from {Context.Guild.Name}. You've died in a game of Russian Roulette. Join the server again if you dare.");
+                        await channel.SendMessageAsync(invites.Select(x => x.Url).FirstOrDefault());
+                        await message.ModifyAsync(x =>
+                        {
+                            x.Content = $"The chamber was loaded! {Context.User.Username} shot themself in the head!";
+                        });
+                        await user.KickAsync();
+                        return;
+                    }
+                    
                 }
                 else
                 {
@@ -520,6 +560,27 @@ namespace Bibs_Discord.NET.Modules
 
 
         }
+        /*
+        [Command("trymarkov")]
+        public async Task Markov()
+        {
+            var rand = new Random();
+            var chain = new MarkovChain<string>(2);
+            List<string> lines = new List<string>();
+            var markovs = await _markovs.GetMarkovsAsync(Context.Guild.Id);
+            foreach (var markov in markovs)
+            {
+                var line = markov.MessageContent;
+                lines.Add(line);
+            }
+            string[] linesList = lines.ToArray();
+            chain.Add(linesList.Skip(rand.Next(0, linesList.Length)).Take(1));
+            var sentence = string.Join(" ", chain.Chain(rand));
+
+            await Context.Channel.TriggerTypingAsync();
+            await Context.Channel.SendMessageAsync(sentence);
+        }
+        */
         [Command("rps")]
         [Summary("Play a game of rock paper scissors")]
         [Cooldown(5)]
@@ -527,31 +588,112 @@ namespace Bibs_Discord.NET.Modules
         {
             if (choice.Contains("paper") || choice.Contains("scissors") || choice.Contains("rock"))
             {
-                int winner = new Random().Next(1, 4);
-                if (winner == 1)
+                string[] bibsChoices = new string[3] { "rock", "paper", "scissors" };
+                int rnd = new Random().Next(1, 3);
+                await Context.Channel.TriggerTypingAsync();
+                await ReplyAsync($"You went with: {choice}");
+                await ReplyAsync($"I went with: {bibsChoices[rnd]}");
+                if (choice.Contains("paper") && bibsChoices[rnd] == "scissors")
                 {
                     Random random = new Random();
                     string[] responses = new string[]{
-                        "Aww man, I lost!", 
-                        "Dammit!",
-                        "One more go, I'll get it next time!",
-                        "I've lost? H-How? I had you!"
-                    };
+                            "I've won! Hah!",
+                            "Hehe, you lost this time.",
+                            "You've done well to lose against me.",
+                            "Outplayed! Don't feel bad, I'm just that great yknow?"
+                        };
                     await Context.Channel.TriggerTypingAsync();
                     await ReplyAsync($"{responses[random.Next(0, responses.Length)]}");
                 }
-                else
+                else if (choice.Contains("scissors") && bibsChoices[rnd] == "rock")
                 {
                     Random random = new Random();
                     string[] responses = new string[]{
-                        "I've won! Hah!",
-                        "Hehe, you lost this time.",
-                        "You've done well to lose against me.",
-                        "Outplayed! Don't feel bad, I'm just that great yknow?"
-                    };
+                            "I've won! Hah!",
+                            "Hehe, you lost this time.",
+                            "You've done well to lose against me.",
+                            "Outplayed! Don't feel bad, I'm just that great yknow?"
+                        };
                     await Context.Channel.TriggerTypingAsync();
                     await ReplyAsync($"{responses[random.Next(0, responses.Length)]}");
                 }
+                else if (choice.Contains("rock") && bibsChoices[rnd] == "paper")
+                {
+                    Random random = new Random();
+                    string[] responses = new string[]{
+                            "I've won! Hah!",
+                            "Hehe, you lost this time.",
+                            "You've done well to lose against me.",
+                            "Outplayed! Don't feel bad, I'm just that great yknow?"
+                        };
+                    await Context.Channel.TriggerTypingAsync();
+                    await ReplyAsync($"{responses[random.Next(0, responses.Length)]}");
+                }
+                else if (choice.Contains("rock") && bibsChoices[rnd] == "scissors")
+                {
+                    Random random = new Random();
+                    string[] responses = new string[]{
+                            "Aww man, I lost!",
+                            "Dammit!",
+                            "One more go, I'll get it next time!",
+                            "I've lost? H-How? I had you!"
+                        };
+                    await Context.Channel.TriggerTypingAsync();
+                    await ReplyAsync($"{responses[random.Next(0, responses.Length)]}");
+                }
+                else if (choice.Contains("paper") && bibsChoices[rnd] == "rock")
+                {
+                    Random random = new Random();
+                    string[] responses = new string[]{
+                            "Aww man, I lost!",
+                            "Dammit!",
+                            "One more go, I'll get it next time!",
+                            "I've lost? H-How? I had you!"
+                        };
+                    await Context.Channel.TriggerTypingAsync();
+                    await ReplyAsync($"{responses[random.Next(0, responses.Length)]}");
+                }
+                else if (choice.Contains("scissors") && bibsChoices[rnd] == "paper")
+                {
+                    Random random = new Random();
+                    string[] responses = new string[]{
+                            "Aww man, I lost!",
+                            "Dammit!",
+                            "One more go, I'll get it next time!",
+                            "I've lost? H-How? I had you!"
+                        };
+                    await Context.Channel.TriggerTypingAsync();
+                    await ReplyAsync($"{responses[random.Next(0, responses.Length)]}");
+                }
+                else 
+                {
+                    await Context.Channel.TriggerTypingAsync();
+                    await ReplyAsync("Damn, that's a tie. Wanna have another go?");
+                }
+                //if (winner == 1)
+                //{
+                //    Random random = new Random();
+                //    string[] responses = new string[]{
+                //        "Aww man, I lost!", 
+                //        "Dammit!",
+                //        "One more go, I'll get it next time!",
+                //        "I've lost? H-How? I had you!"
+                //    };
+                //    await Context.Channel.TriggerTypingAsync();
+                //    await ReplyAsync($"{responses[random.Next(0, responses.Length)]}");
+                //}
+                //else
+                //{
+                //    Random random = new Random();
+                //    string[] responses = new string[]{
+                //        "I've won! Hah!",
+                //        "Hehe, you lost this time.",
+                //        "You've done well to lose against me.",
+                //        "Outplayed! Don't feel bad, I'm just that great yknow?"
+                //    };
+                //    await Context.Channel.TriggerTypingAsync();
+                //    await ReplyAsync($"{responses[random.Next(0, responses.Length)]}");
+                //}
             }
             else
             {
@@ -593,6 +735,30 @@ namespace Bibs_Discord.NET.Modules
                 await Context.Channel.SendErrorAsync("Error", $"You've entered {sides}, please try again\nMin: 2 | max: 255!");
             }
         }
+
+        [Command("inspire", RunMode = RunMode.Async)]
+        [Summary("Generates an inspirational quote")]
+        [Cooldown(5)]
+        public async Task Inspire()
+        {
+            var client = new HttpClient();
+            string img = await client.GetStringAsync("https://inspirobot.me/api?generate=true");
+            await Context.Channel.TriggerTypingAsync();
+            var builder = new EmbedBuilder()
+            .WithImageUrl(img)
+            .WithColor(new Color(33, 176, 252))
+            .WithTitle("Generated inspirational quote:")
+            .WithCurrentTimestamp()
+            .WithFooter(
+            x =>
+            {
+                x.WithText($"Info | Requested by {Context.User.Username}");
+                x.WithIconUrl(Context.User.GetAvatarUrl());
+            });
+            var embed = builder.Build();
+            await Context.Channel.SendMessageAsync(null, false, embed);
+        }
+
         [Command("wiki", RunMode = RunMode.Async)]
         [Alias("wikipedia")]
         [Summary("Searches Wikipedia")]
@@ -607,6 +773,7 @@ namespace Bibs_Discord.NET.Modules
 
             await WikiSearch(search, Context.Channel);
         }
+        
 
         [Command("wiki", RunMode = RunMode.Async)]
         [Alias("wikipedia")]

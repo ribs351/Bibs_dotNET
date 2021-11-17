@@ -17,6 +17,8 @@ using Victoria;
 using Victoria.EventArgs;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
+using Bibs_Discord_dotNET.Commons.Structs;
+using System.Text.RegularExpressions;
 
 namespace Bibs_Discord_dotNET.Services
 {
@@ -32,8 +34,10 @@ namespace Bibs_Discord_dotNET.Services
         private readonly LavaNode _lavaNode;
         private readonly ILogger<CommandHandler> _logger;
         private readonly Limits _limits;
+        private readonly Markovs _markovs;
+        public static bool shutup = false;
 
-        public CommandHandler(Limits limits, ILogger<CommandHandler> logger, IServiceProvider provider, DiscordSocketClient client, CommandService service, IConfiguration config, Servers servers, Images images, ServerHelper serverHelper, LavaNode lavaNode)
+        public CommandHandler(Markovs markovs, Limits limits, ILogger<CommandHandler> logger, IServiceProvider provider, DiscordSocketClient client, CommandService service, IConfiguration config, Servers servers, Images images, ServerHelper serverHelper, LavaNode lavaNode)
         {
             _provider = provider;
             _client = client;
@@ -45,6 +49,7 @@ namespace Bibs_Discord_dotNET.Services
             _lavaNode = lavaNode;
             _logger = logger;
             _limits = limits;
+            _markovs = markovs;
         }
 
         public override async Task InitializeAsync(CancellationToken cancellationToken)
@@ -54,10 +59,10 @@ namespace Bibs_Discord_dotNET.Services
             _client.JoinedGuild += OnJoinedGuild;
             _client.UserJoined += OnUserJoined;
             _client.Connected += OnStartUp;
-            _client.UserIsTyping += OnUserIsTyping;
+            //_client.UserIsTyping += OnUserIsTyping;
             _client.LeftGuild += OnLeftGuild;
-            _client.MessageDeleted += OnMessageDeleted;
-           // _client.MessageUpdated += OnMessageUpdated;
+            //_client.MessageDeleted += OnMessageDeleted;
+            //_client.MessageUpdated += OnMessageUpdated;
             _lavaNode.OnTrackEnded += OnTrackEnded;
 
             _service.CommandExecuted += OnCommandExecuted;
@@ -72,7 +77,7 @@ namespace Bibs_Discord_dotNET.Services
             return;
 
         }*/
-
+        /*
         private async Task OnMessageDeleted(Cacheable<IMessage, ulong> msg, ISocketMessageChannel channel)
         {
             var guild = (channel as SocketTextChannel)?.Guild;
@@ -87,25 +92,14 @@ namespace Bibs_Discord_dotNET.Services
                 return;
             }
         }
-        
+        */
 
         private async Task OnLeftGuild(SocketGuild arg)
         {
             await _client.SetGameAsync($"over {_client.Guilds.Count} servers!", null, ActivityType.Watching);
         }
 
-        private async Task OnUserIsTyping(SocketUser u, ISocketMessageChannel m)
-        {
-            if (u.IsBot) return;
-            int random = new Random().Next(0, 2000);
-            string username = u.Username;
-            if (random == 5)
-            {
-                await m.TriggerTypingAsync();
-                await m.SendMessageAsync($"Watcha typin' there, {username}?");
-            }
-        }
-
+        
         private async Task OnStartUp()
         {
             await _client.SetGameAsync($"over {_client.Guilds.Count} servers!", null, ActivityType.Watching);
@@ -195,105 +189,78 @@ namespace Bibs_Discord_dotNET.Services
             await _servers.ClearRaidAsync(arg.Id);
             await _servers.ClearNoWeebAsync(arg.Id);
             await _servers.ClearHasLimitAsync(arg.Id);
+            await _servers.ClearHasMarkovAsync(arg.Id);
             await _client.SetGameAsync($"over {_client.Guilds.Count} servers!", null, ActivityType.Watching);
         }
         private async Task HandleFilter(SocketMessage arg)
         {
             var guild = (arg.Channel as SocketTextChannel)?.Guild;
             var message = (arg as SocketUserMessage);
-            string[] pottyMouth = new string[] {
-                "faggot",
-                "faggots",
-                "nigger",
-                "niggers",
-                "nigga",
-                "niggas",
-                "fag",
-                "fags",
-                "faggy",
-                "niglet",
-                "niglets",
-                "towelhead",
-                "towelheads",
-                "negro",
-                "negros",
-                "chink",
-                "chinks",
-                "zipperhead",
-                "zipperheads",
-                "beaner",
-                "beaners",
-                "coon",
-                "coons",
-                "kike",
-                "kikes",
-                "jewboy",
-                "jewboys"
-            };
-            /* WIP gonna have to invoke Regex aka the elder god for this to work LMFAO
-             * God dammit lelic if you can do this why can't you fucking code your game better
-            Dictionary<string, string> lelic = new Dictionary<string, string>();
-            lelic.Add("fuck","garden");
-            lelic.Add("shit", "pudding");
-            foreach (var item in lelic)
+
+            /* for some fucking reasons the bot did not loop properly so it only changes the first value like what the f????
+             
+           
+            foreach (KeyValuePair<string, string> replacement in Variables.lelic)
             {
-                if (message.Content.ToString().ToLower().Contains(item.Key))
+                if (message.Content.ToString().ToLower().Contains(replacement.Key))
                 {
-                    string original = message.Content.ToString();
-                    string familyFriendly = original.Replace(item.Key, item.Value);
+                    string sentence = message.Content.ToString().ToLower();
+                    string[] words = sentence.Split(null);
+                    for (int i = 0; i < words.Count(); i++)
+                    {
+                        if (words[i].Contains(replacement.Key))
+                        {
+                            words[Array.IndexOf(words, words[i])] = Regex.Replace(words[i], replacement.Key, replacement.Value, RegexOptions.IgnoreCase);
+                        }
+                    }
+                    string familyFriendly = string.Join(" ", words);
                     await message.DeleteAsync();
-                    await message.Channel.SendErrorAsync("Hey!", $"{message.Author.Mention} said {familyFriendly}");
-                    await _serverHelper.SendLogAsync(guild, "Situation Log", $"{message.Author.Mention} said `{message.Content.ToString()}`.");
+                    await message.Channel.SendErrorAsync("Swear Filter!", $"```{message.Author.Username}: {familyFriendly}```");
+                    await _serverHelper.SendLogAsync(guild, "Situation Log", $"{message.Author.Mention} said: ```{message.Content.ToString()}```.");
                     return;
                 }
             }
             */
-            if (message.Content.ToString().ToLower().Split(" ").Intersect(pottyMouth).Any())
+
+            if (message.Content.ToString().ToLower().Split(" ").Intersect(Variables.pottyMouth).Any())
             {
                 await message.DeleteAsync();
                 await message.Channel.SendErrorAsync("Hey!", $"{message.Author.Mention} You can't say that!");
                 await _serverHelper.SendLogAsync(guild, "Situation Log", $"{message.Author.Mention} said `{message.Content.ToString()}`.");
                 return;
             }
+
+            if (message.Content.ToString().Contains("@everyone") || message.Content.ToString().Contains("@here") || message.Content.ToString().ToLower().Contains("nitro"))
+            {
+                var user = message.Author as SocketGuildUser;
+                if (user.Hierarchy > guild.CurrentUser.Hierarchy)
+                {
+                    return;
+                }
+                await message.DeleteAsync();
+                try {
+                    var channel = await message.Author.GetOrCreateDMChannelAsync();
+                    await channel.SendMessageAsync($"The message `{message.Content}` was deleted because you've triggered the anti-phishing filter, you probably shouldn't be pinging @everyone and you should also do giveaways elsewhere.");
+                }
+                catch { }
+                return;
+                
+            }
+
         }
         private async Task HandleAutomatedResponse(SocketMessage arg)
         {
+            int argID = 0;
+            SocketSelfUser selfUser = _client.CurrentUser;
             var message = (arg as SocketUserMessage);
-            //cringe
-            List<string> compliments = new List<string>();
-            compliments.Add("you're cute");
-            compliments.Add("you are so cute");
-            compliments.Add("you're so cute");
-            compliments.Add("you're a cutie");
-            compliments.Add("short and cute");
-            compliments.Add("i like you");
-            compliments.Add("i love you");
-            compliments.Add("marry me");
-            compliments.Add("do you like being a girl");
-            compliments.Add("go on a date");
-            compliments.Add("best girl");
-
-            Random random = new Random();
-            string[] response = 
-            {
-                "Wh-Wha?!",
-                "Wh-What are you saying?",
-                "?!!",
-                "Don't say those things out loud!",
-                "Hmph",
-                "Sheesh!",
-                "Can you not?",
-                "Hehhh!?",
-                "...",
-                "G-Geez!"
-            };
             
-            foreach (var compliment in compliments)
+
+            foreach (var compliment in Variables.compliments)
             {
-                if (message.Content.ToLower().Contains(compliment) && message.Content.ToLower().Contains("bibs"))
+                if (message.Content.ToLower().Contains(compliment) && (message.Content.ToLower().Contains("bibs") || message.HasMentionPrefix(selfUser as IUser, ref argID)))
                 {
                     await message.Channel.TriggerTypingAsync();
-                    await message.Channel.SendMessageAsync($"{response[random.Next(0, response.Length)].ToString()}");
+                    await message.Channel.SendMessageAsync($"{Variables.response[Variables.randomRepliesToCompliments.Next(0, Variables.response.Length)].ToString()}");
                     return;
                 }
             }
@@ -305,6 +272,34 @@ namespace Bibs_Discord_dotNET.Services
                 await message.Channel.SendMessageAsync("I'll murder you!");
                 return;
             }
+            if ((message.HasMentionPrefix(selfUser as IUser, ref argID) && message.Content.ToLower().Contains("shit") && message.Content.ToLower().Contains("bot")))
+            {
+                await message.Channel.TriggerTypingAsync();
+                await message.Channel.SendMessageAsync($"{Variables.comebacks[Variables.randomRepliesToInsults.Next(0, Variables.comebacks.Length)].ToString()}");
+                return;
+            }
+
+            if ((message.HasMentionPrefix(selfUser as IUser, ref argID) && message.Content.ToLower().Contains("shut up")))
+            {
+                await message.Channel.TriggerTypingAsync();
+                await message.Channel.SendMessageAsync("Awww, you're having a bad day?");
+                return;
+            }
+
+            if ((message.HasMentionPrefix(selfUser as IUser, ref argID) && message.Content.ToLower().Contains("go away")))
+            {
+                await message.Channel.TriggerTypingAsync();
+                await message.Channel.SendMessageAsync("I would, but you're blocking the way.");
+                return;
+            }
+
+            if ((message.HasMentionPrefix(selfUser as IUser, ref argID) && message.Content.ToLower().Contains("die")))
+            {
+                await message.Channel.TriggerTypingAsync();
+                await message.Channel.SendMessageAsync("I tried, but hell didn't let me in. Can you show me how it's done?");
+                return;
+            }
+
             if ((message.Content.ToLower().Contains("numbers") && message.Content.ToLower().Contains("mean")) && message.Content.ToLower().Contains("bibs"))
             {
                 await message.Channel.TriggerTypingAsync();
@@ -369,7 +364,7 @@ namespace Bibs_Discord_dotNET.Services
                         newTask.Start();
                     }
                 }
-                catch (Exception e) 
+                catch (Exception) 
                 {
                     await _servers.ClearFilterAsync(guild.Id);
                     await message.Channel.SendErrorAsync("Error", "Something went wrong, please try again, if the bot is unresponsive, contact Ribs#8205 on discord.");
@@ -386,12 +381,14 @@ namespace Bibs_Discord_dotNET.Services
                         }
                     }
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    await _servers.ClearHasLimitAsync(guild.Id);
+                    //await _servers.ClearHasLimitAsync(guild.Id);
                     await message.Channel.SendErrorAsync("Error", "Something went wrong, please try again, if the bot is unresponsive, contact Ribs#8205 on discord.");
                 }
+
                 prefix = await _servers.GetGuildPrefix((message.Channel as SocketGuildChannel).Guild.Id) ?? "!";
+                
                 if (!message.HasStringPrefix(prefix, ref argPos) && !message.HasMentionPrefix(_client.CurrentUser, ref argPos)) return;
 
                 var context = new SocketCommandContext(_client, message);
@@ -460,23 +457,23 @@ namespace Bibs_Discord_dotNET.Services
                 await context.Channel.SendMessageAsync(embed: embed.Build());
                 return;
             }
-            if (result.Error == CommandError.UnknownCommand)
-            {
-                var embed = new EmbedBuilder
-                {
-                    Author = new EmbedAuthorBuilder
-                    {
-                        Name = $"{context.User.Username}#{context.User.Discriminator}",
-                        IconUrl = context.User.GetAvatarUrl() ?? context.User.GetDefaultAvatarUrl()
-                    },
-                    Description = result.ErrorReason.ToString(),
-                    Color = Color.Red
-                }
-                .WithFooter("What are you trying to do?")
-                .WithCurrentTimestamp();
-                await context.Channel.SendMessageAsync(embed: embed.Build());
-                return;
-            }
+            //if (result.Error == CommandError.UnknownCommand)
+            //{
+            //    var embed = new EmbedBuilder
+            //    {
+            //        Author = new EmbedAuthorBuilder
+            //        {
+            //            Name = $"{context.User.Username}#{context.User.Discriminator}",
+            //            IconUrl = context.User.GetAvatarUrl() ?? context.User.GetDefaultAvatarUrl()
+            //        },
+            //        Description = result.ErrorReason.ToString(),
+            //        Color = Color.Red
+            //    }
+            //    .WithFooter("What are you trying to do?")
+            //    .WithCurrentTimestamp();
+            //    await context.Channel.SendMessageAsync(embed: embed.Build());
+            //    return;
+            //}
             if (command.IsSpecified && !result.IsSuccess) await (context.Channel as ISocketMessageChannel).SendErrorAsync("Error", result.ErrorReason);
         }
     }

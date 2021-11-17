@@ -25,10 +25,11 @@ namespace Bibs_Discord.NET.Modules
         private readonly Muteds _muteds;
         private readonly AutoRoles _autoRoles;
         private readonly Limits _limits;
+        private readonly Markovs _markovs;
 
         private readonly GuildPermissions mutedPerms = new GuildPermissions(sendMessages: false);
 
-        public Moderation(Limits limits, Muteds muteds, ServerHelper serverHelper, ILogger<Moderation> logger, Servers servers, Ranks ranks, AutoRoles autoRoles)
+        public Moderation(Markovs markovs, Limits limits, Muteds muteds, ServerHelper serverHelper, ILogger<Moderation> logger, Servers servers, Ranks ranks, AutoRoles autoRoles)
         {
             _serverHelper = serverHelper;
             _logger = logger;
@@ -37,6 +38,7 @@ namespace Bibs_Discord.NET.Modules
             _autoRoles = autoRoles;
             _muteds = muteds;
             _limits = limits;
+            _markovs = markovs;
         }
 
         public async Task MutePerms(SocketGuildUser user)
@@ -309,7 +311,7 @@ namespace Bibs_Discord.NET.Modules
         }
         [Command("addrank", RunMode = RunMode.Async)]
         [Summary("Add a rank to the list of usable ranks")]
-        [RequireUserPermission(Discord.GuildPermission.Administrator, ErrorMessage = "You don't have permission to do that!")]
+        [RequireUserPermission(Discord.GuildPermission.ManageRoles, ErrorMessage = "You don't have permission to do that!")]
         [RequireBotPermission(Discord.GuildPermission.ManageRoles)]
         public async Task AddRank([Remainder] string name)
         {
@@ -345,7 +347,7 @@ namespace Bibs_Discord.NET.Modules
         }
         [Command("delrank", RunMode = RunMode.Async)]
         [Summary("Removes a rank from the list of ranks")]
-        [RequireUserPermission(GuildPermission.Administrator, ErrorMessage = "You don't have permission to do that!")]
+        [RequireUserPermission(GuildPermission.ManageRoles, ErrorMessage = "You don't have permission to do that!")]
         [RequireBotPermission(GuildPermission.ManageRoles)]
         public async Task DelRank([Remainder] string name)
         {
@@ -374,7 +376,7 @@ namespace Bibs_Discord.NET.Modules
         }
         [Command("autoroles", RunMode = RunMode.Async)]
         [Summary("Lists all available autoroles")]
-        [RequireUserPermission(GuildPermission.Administrator, ErrorMessage = "You don't have permission to do that!")]
+        [RequireUserPermission(GuildPermission.ManageRoles, ErrorMessage = "You don't have permission to do that!")]
         public async Task AutoRoles()
         {
             var autoRoles = await _serverHelper.GetAutoRolesAsync(Context.Guild);
@@ -405,7 +407,7 @@ namespace Bibs_Discord.NET.Modules
 
         [Command("addautorole", RunMode = RunMode.Async)]
         [Summary("Set an autorole")]
-        [RequireUserPermission(GuildPermission.Administrator, ErrorMessage = "You don't have permission to do that!")]
+        [RequireUserPermission(GuildPermission.ManageRoles, ErrorMessage = "You don't have permission to do that!")]
         [RequireBotPermission(GuildPermission.ManageRoles)]
         public async Task AddAutoRole([Remainder] string name)
         {
@@ -439,7 +441,7 @@ namespace Bibs_Discord.NET.Modules
 
         [Command("delautorole", RunMode = RunMode.Async)]
         [Summary("Delete an autorole")]
-        [RequireUserPermission(GuildPermission.Administrator, ErrorMessage = "You don't have permission to do that!")]
+        [RequireUserPermission(GuildPermission.ManageRoles, ErrorMessage = "You don't have permission to do that!")]
         [RequireBotPermission(GuildPermission.ManageRoles)]
         public async Task DelAutoRole([Remainder] string name)
         {
@@ -581,14 +583,25 @@ namespace Bibs_Discord.NET.Modules
                     }
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 await _servers.ClearRaidAsync(Context.Guild.Id);
                 await Context.Channel.SendErrorAsync("Error", "Something went wrong, please try again, if the bot is unresponsive, contact Ribs#8205 on discord.");
             }
               
         }
-        
+        //[Command("togglemarkov")]
+        //[Summary("Toggles the markov chain on the server, allowing bibs to generate messages like a drunkard!")]
+        //[RequireUserPermission(GuildPermission.ManageChannels, ErrorMessage = "You don't have permission to do that!")]
+        //public async Task EnableMarkov()
+        //{
+        //    await Context.Channel.TriggerTypingAsync();
+        //    await _servers.ModifyHasMarkovAsync(Context.Guild.Id);
+        //    var fetchedServerHasMarkov = await _servers.GetHasMarkovAsync(Context.Guild.Id);
+        //    await _serverHelper.SendLogAsync(Context.Guild, "Situation Log", $"{Context.User.Mention} enabled markov mode!");
+        //    await Context.Channel.SendSuccessAsync("Markov Chain", $"Successfully set the bot's markov chain to {fetchedServerHasMarkov.ToString()}");
+        //}
+
         [Command("togglelimit")]
         [Summary("Toggles the limited mode, limits the bot to certain channels, make sure to set up the limit channels first!")]
         [RequireUserPermission(GuildPermission.ManageChannels, ErrorMessage = "You don't have permission to do that!")]
@@ -603,7 +616,7 @@ namespace Bibs_Discord.NET.Modules
             }
             await Context.Channel.TriggerTypingAsync();
             await _servers.ModifyHasLimitAsync(Context.Guild.Id);
-            var fetchedServerLimit = await _servers.GetFilterAsync(Context.Guild.Id);
+            var fetchedServerLimit = await _servers.GetHasLimitAsync(Context.Guild.Id);
             await _serverHelper.SendLogAsync(Context.Guild, "Situation Log", $"{Context.User.Mention} enabled limited mode!");
             await Context.Channel.SendSuccessAsync("Channel Limits", $"Successfully set the bot's channel limits to {fetchedServerLimit.ToString()}");
         }
